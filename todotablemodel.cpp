@@ -249,4 +249,3 @@ bool TodoTableModel::redoPossible()
 int TodoTableModel::count(){
     return this->rowCount(QModelIndex());
 }
-

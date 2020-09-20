@@ -314,6 +314,12 @@ void MainWindow::on_lineEdit_2_returnPressed()
 
     if(!liveUpdate || ui->cb_showaall->isChecked()){
         updateSearchResults();
+    } else {
+        auto index = ui->tableView->model()->index(0, 1);
+        ui->tableView->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
+        ui->tableView->setFocus(Qt::OtherFocusReason);
+        saved_selection = model->data(index,Qt::UserRole).toString();
+        resetTableSelection();
     }
 
 }
