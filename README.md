@@ -1,4 +1,4 @@
-# Todour
+# Todoit
 A todo.txt application Todoit, derived from [Todour](https://github.com/SverrirValgeirsson/Todour).
 
 The program uses QtAwesome for the icons.
