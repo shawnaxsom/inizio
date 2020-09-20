@@ -126,6 +126,12 @@ MainWindow::MainWindow(QWidget *parent) :
     //auto contextshortcut = new QShortcut(QKeySequence(tr("Ctrl+l")),this);
     //QObject::connect(contextshortcut,SIGNAL(activated()),ui->context_lock,SLOT(setChecked(!(ui->context_lock->isChecked()))));
     QObject::connect(model,SIGNAL(dataChanged (const QModelIndex , const QModelIndex )),this,SLOT(dataInModelChanged(QModelIndex,QModelIndex)));
+    ui->tableView->setWordWrap(true);
+    connect(
+        ui->tableView->horizontalHeader(),
+        SIGNAL(sectionResized(int, int, int)),
+        ui->tableView,
+        SLOT(resizeRowsToContents()));
 
     /*
     These should now be handled in the menu system

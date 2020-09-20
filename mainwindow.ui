@@ -158,7 +158,7 @@ border-radius: 5px;
          <bool>false</bool>
         </property>
         <property name="wordWrap">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <attribute name="verticalHeaderVisible">
          <bool>false</bool>
