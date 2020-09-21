@@ -123,6 +123,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(editshortcut,SIGNAL(activated()),ui->lineEdit,SLOT(setFocus()));
     auto findshortcut = new QShortcut(QKeySequence(tr("Ctrl+f")),this);
     QObject::connect(findshortcut,SIGNAL(activated()),ui->lineEdit_2,SLOT(setFocus()));
+    auto launchshortcut = new QShortcut(QKeySequence(tr("u")),ui->tableView);
+    launchshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(launchshortcut,SIGNAL(activated()),this,SLOT(launchUrl()));
     //auto contextshortcut = new QShortcut(QKeySequence(tr("Ctrl+l")),this);
     //QObject::connect(contextshortcut,SIGNAL(activated()),ui->context_lock,SLOT(setChecked(!(ui->context_lock->isChecked()))));
     QObject::connect(model,SIGNAL(dataChanged (const QModelIndex , const QModelIndex )),this,SLOT(dataInModelChanged(QModelIndex,QModelIndex)));
@@ -647,11 +650,19 @@ void MainWindow::redo()
 
 }
 
+void MainWindow::launchUrl()
+{
+    auto index = ui->tableView->selectionModel()->currentIndex();
+    QString URL=ui->tableView->model()->data(index,Qt::UserRole+1).toString();
+    if(!URL.isEmpty()){
+        QDesktopServices::openUrl(URL);
+    }
+}
+
 // Check if there is an update available
 void MainWindow::requestPage(QString &s){
     connect(networkaccessmanager,SIGNAL(finished(QNetworkReply*)),this,SLOT(requestReceived(QNetworkReply*)));
     networkaccessmanager->get(QNetworkRequest(QUrl(s)));
-
 }
 
 

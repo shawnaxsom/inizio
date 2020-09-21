@@ -58,6 +58,8 @@ private slots:
 
     void dataInModelChanged(QModelIndex i1,QModelIndex i2);
 
+    void launchUrl();
+
     void on_btn_Alphabetical_toggled(bool checked);
 
     void on_lineEdit_2_returnPressed();
