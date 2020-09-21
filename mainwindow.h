@@ -60,6 +60,11 @@ private slots:
 
     void launchUrl();
 
+    void up();
+    void down();
+    void left();
+    void right();
+
     void on_btn_Alphabetical_toggled(bool checked);
 
     void on_lineEdit_2_returnPressed();

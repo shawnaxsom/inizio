@@ -121,11 +121,30 @@ MainWindow::MainWindow(QWidget *parent) :
     // http://doc.qt.io/qt-5/qshortcut.html
     auto editshortcut = new QShortcut(QKeySequence(tr("Ctrl+n")),this);
     QObject::connect(editshortcut,SIGNAL(activated()),ui->lineEdit,SLOT(setFocus()));
+
     auto findshortcut = new QShortcut(QKeySequence(tr("Ctrl+f")),this);
     QObject::connect(findshortcut,SIGNAL(activated()),ui->lineEdit_2,SLOT(setFocus()));
+
     auto launchshortcut = new QShortcut(QKeySequence(tr("u")),ui->tableView);
     launchshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(launchshortcut,SIGNAL(activated()),this,SLOT(launchUrl()));
+
+    auto upshortcut = new QShortcut(QKeySequence(tr("k")),ui->tableView);
+    upshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(upshortcut,SIGNAL(activated()),this,SLOT(up()));
+
+    auto downshortcut = new QShortcut(QKeySequence(tr("j")),ui->tableView);
+    downshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(downshortcut,SIGNAL(activated()),this,SLOT(down()));
+
+    auto leftshortcut = new QShortcut(QKeySequence(tr("h")),ui->tableView);
+    leftshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(leftshortcut,SIGNAL(activated()),this,SLOT(left()));
+
+    auto rightshortcut = new QShortcut(QKeySequence(tr("l")),ui->tableView);
+    rightshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(rightshortcut,SIGNAL(activated()),this,SLOT(right()));
+
     //auto contextshortcut = new QShortcut(QKeySequence(tr("Ctrl+l")),this);
     //QObject::connect(contextshortcut,SIGNAL(activated()),ui->context_lock,SLOT(setChecked(!(ui->context_lock->isChecked()))));
     QObject::connect(model,SIGNAL(dataChanged (const QModelIndex , const QModelIndex )),this,SLOT(dataInModelChanged(QModelIndex,QModelIndex)));
@@ -657,6 +676,30 @@ void MainWindow::launchUrl()
     if(!URL.isEmpty()){
         QDesktopServices::openUrl(URL);
     }
+}
+
+void MainWindow::up()
+{
+    QKeyEvent *key_press = new QKeyEvent(QKeyEvent::KeyPress, Qt::Key_Up, Qt::NoModifier, "Up");
+    QApplication::sendEvent(ui->tableView, key_press);
+}
+
+void MainWindow::down()
+{
+    QKeyEvent *key_press = new QKeyEvent(QKeyEvent::KeyPress, Qt::Key_Down, Qt::NoModifier, "Down");
+    QApplication::sendEvent(ui->tableView, key_press);
+}
+
+void MainWindow::left()
+{
+    QKeyEvent *key_press = new QKeyEvent(QKeyEvent::KeyPress, Qt::Key_Left, Qt::NoModifier, "Left");
+    QApplication::sendEvent(ui->tableView, key_press);
+}
+
+void MainWindow::right()
+{
+    QKeyEvent *key_press = new QKeyEvent(QKeyEvent::KeyPress, Qt::Key_Right, Qt::NoModifier, "Right");
+    QApplication::sendEvent(ui->tableView, key_press);
 }
 
 // Check if there is an update available
