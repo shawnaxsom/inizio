@@ -18,7 +18,7 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
     Qt::ItemFlags flags(const QModelIndex& index) const;
-    bool setData(const QModelIndex & index, const QVariant & value, int role);
+    bool setData(const QModelIndex & index, const QVariant & value, int role, bool shouldEndResetModel = true);
     void add(QString text);
     void remove(QString text);
     void archive();
@@ -30,6 +30,7 @@ public:
     bool redo();
     bool undoPossible(); // Say if undo is possible or not
     bool redoPossible(); // Say if redo is possible or not
+    void endReset();
 
 signals:
    //void dataChanged(QModelIndex i1,QModelIndex i2,QVector<int> v); Borde inte behövas. Det finns ju redan

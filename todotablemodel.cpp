@@ -136,9 +136,9 @@ QVariant TodoTableModel::headerData(int section, Qt::Orientation orientation, in
   return QVariant::Invalid;
 }
 
-bool TodoTableModel::setData(const QModelIndex & index, const QVariant & value, int role)
+bool TodoTableModel::setData(const QModelIndex & index, const QVariant & value, int role, bool shouldEndResetModel)
 {
-
+    qDebug()<<"Foo1";
     if(index.column()==0 && role == Qt::CheckStateRole)
     {
         beginResetModel();
@@ -156,11 +156,17 @@ bool TodoTableModel::setData(const QModelIndex & index, const QVariant & value, 
 
    todo_data.clear();
 
-  endResetModel();
+  if (shouldEndResetModel) {
+    endResetModel(); // Can't call this if working in a batch list or it will segfault
+  }
 
   emit dataChanged(index, index); // Detta innebär ju också att denna item är den som är selected just nu så vi kan lyssna på den signalen
 
   return true;
+}
+
+void TodoTableModel::endReset(){
+    endResetModel();
 }
 
 void TodoTableModel::add(QString text){

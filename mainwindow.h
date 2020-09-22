@@ -65,6 +65,8 @@ private slots:
     void left();
     void right();
 
+    void forEachSelection(std::function<void(QModelIndex, QString)> func, std::function<void()> callback);
+
     void showAppendDialog();
 
     void on_btn_Alphabetical_toggled(bool checked);

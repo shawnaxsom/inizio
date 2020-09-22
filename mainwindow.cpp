@@ -719,20 +719,26 @@ void MainWindow::showAppendDialog()
     const int ret = dialog->exec();
     if (ret) {
         auto text = dialog->textValue();
-        
-        // Remove the selected item
-        QModelIndexList indexes = ui->tableView->selectionModel()->selection().indexes();
-        // Only support for appending to one item at a time
-        if(!indexes.empty()){
-            QModelIndex index = indexes.at(0);
-            QString t = ui->tableView->model()->data(index,Qt::UserRole).toString(); // User Role is Raw data
-            qDebug()<<"t"<<t;
-            t.append(" ");
-            t.append(text);
-            qDebug()<<"Text"<<t;
-            model->setData(proxyModel->mapToSource(index), t, Qt::EditRole);
-        }
+
+        forEachSelection([=](QModelIndex index, QString data) {
+            data.append(" ");
+            data.append(text);
+            model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
+        }, [=]() {
+            model->endReset();
+        });
     }
+}
+
+void MainWindow::forEachSelection(std::function<void(QModelIndex, QString)> func, std::function<void()> callback) {
+    QModelIndexList indexes = ui->tableView->selectionModel()->selection().indexes();
+
+    for(QModelIndex index:indexes) {
+        QString data = ui->tableView->model()->data(index, Qt::UserRole).toString();
+        func(index, data);
+    }
+
+    callback();
 }
 
 // Check if there is an update available
