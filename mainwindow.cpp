@@ -23,6 +23,9 @@
 #include <QSystemTrayIcon>
 #include <QDesktopServices>
 #include <QUuid>
+#include <QDate>
+#include <QDateEdit>
+#include <QInputDialog>
 
 QNetworkAccessManager *networkaccessmanager;
 TodoTableModel *model=NULL;
@@ -144,6 +147,10 @@ MainWindow::MainWindow(QWidget *parent) :
     auto rightshortcut = new QShortcut(QKeySequence(tr("l")),ui->tableView);
     rightshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(rightshortcut,SIGNAL(activated()),this,SLOT(right()));
+
+    auto appendshortcut = new QShortcut(QKeySequence(tr("a")),ui->tableView);
+    appendshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(appendshortcut,SIGNAL(activated()),this,SLOT(showAppendDialog()));
 
     //auto contextshortcut = new QShortcut(QKeySequence(tr("Ctrl+l")),this);
     //QObject::connect(contextshortcut,SIGNAL(activated()),ui->context_lock,SLOT(setChecked(!(ui->context_lock->isChecked()))));
@@ -700,6 +707,32 @@ void MainWindow::right()
 {
     QKeyEvent *key_press = new QKeyEvent(QKeyEvent::KeyPress, Qt::Key_Right, Qt::NoModifier, "Right");
     QApplication::sendEvent(ui->tableView, key_press);
+}
+
+void MainWindow::showAppendDialog()
+{
+    auto dialog = new QInputDialog(this);
+    dialog->setWindowTitle("Append Text");
+    dialog->setLabelText("Text");
+    dialog->setTextValue("");
+    dialog->setTextEchoMode(QLineEdit::Normal);
+    const int ret = dialog->exec();
+    if (ret) {
+        auto text = dialog->textValue();
+        
+        // Remove the selected item
+        QModelIndexList indexes = ui->tableView->selectionModel()->selection().indexes();
+        // Only support for appending to one item at a time
+        if(!indexes.empty()){
+            QModelIndex index = indexes.at(0);
+            QString t = ui->tableView->model()->data(index,Qt::UserRole).toString(); // User Role is Raw data
+            qDebug()<<"t"<<t;
+            t.append(" ");
+            t.append(text);
+            qDebug()<<"Text"<<t;
+            model->setData(proxyModel->mapToSource(index), t, Qt::EditRole);
+        }
+    }
 }
 
 // Check if there is an update available

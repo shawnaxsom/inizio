@@ -65,6 +65,8 @@ private slots:
     void left();
     void right();
 
+    void showAppendDialog();
+
     void on_btn_Alphabetical_toggled(bool checked);
 
     void on_lineEdit_2_returnPressed();
@@ -72,7 +74,6 @@ private slots:
     void on_hotkey();
 
     void on_context_lock_toggled(bool checked);
-
 
     void on_cb_showaall_stateChanged(int arg1);
     void on_cb_threshold_inactive_stateChanged(int arg1);
