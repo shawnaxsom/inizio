@@ -136,9 +136,13 @@ QVariant TodoTableModel::headerData(int section, Qt::Orientation orientation, in
   return QVariant::Invalid;
 }
 
+bool TodoTableModel::setData(const QModelIndex & index, const QVariant & value, int role)
+{
+    setData(index, value, role, true);
+}
+
 bool TodoTableModel::setData(const QModelIndex & index, const QVariant & value, int role, bool shouldEndResetModel)
 {
-    qDebug()<<"Foo1";
     if(index.column()==0 && role == Qt::CheckStateRole)
     {
         beginResetModel();
