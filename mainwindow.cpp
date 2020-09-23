@@ -128,7 +128,7 @@ MainWindow::MainWindow(QWidget *parent) :
     auto findshortcut = new QShortcut(QKeySequence(tr("Ctrl+f")),this);
     QObject::connect(findshortcut,SIGNAL(activated()),ui->lineEdit_2,SLOT(setFocus()));
 
-    auto launchshortcut = new QShortcut(QKeySequence(tr("u")),ui->tableView);
+    auto launchshortcut = new QShortcut(QKeySequence(tr("o")),ui->tableView);
     launchshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(launchshortcut,SIGNAL(activated()),this,SLOT(launchUrl()));
 
@@ -151,6 +151,14 @@ MainWindow::MainWindow(QWidget *parent) :
     auto appendshortcut = new QShortcut(QKeySequence(tr("a")),ui->tableView);
     appendshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(appendshortcut,SIGNAL(activated()),this,SLOT(showAppendDialog()));
+
+    auto pageupshortcut = new QShortcut(QKeySequence(tr("u")),ui->tableView);
+    pageupshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(pageupshortcut,SIGNAL(activated()),this,SLOT(pageUp()));
+
+    auto pagedownshortcut = new QShortcut(QKeySequence(tr("d")),ui->tableView);
+    pagedownshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(pagedownshortcut,SIGNAL(activated()),this,SLOT(pageDown()));
 
     //auto contextshortcut = new QShortcut(QKeySequence(tr("Ctrl+l")),this);
     //QObject::connect(contextshortcut,SIGNAL(activated()),ui->context_lock,SLOT(setChecked(!(ui->context_lock->isChecked()))));
@@ -706,6 +714,18 @@ void MainWindow::left()
 void MainWindow::right()
 {
     QKeyEvent *key_press = new QKeyEvent(QKeyEvent::KeyPress, Qt::Key_Right, Qt::NoModifier, "Right");
+    QApplication::sendEvent(ui->tableView, key_press);
+}
+
+void MainWindow::pageUp()
+{
+    QKeyEvent *key_press = new QKeyEvent(QKeyEvent::KeyPress, Qt::Key_PageUp, Qt::NoModifier, "PageUp");
+    QApplication::sendEvent(ui->tableView, key_press);
+}
+
+void MainWindow::pageDown()
+{
+    QKeyEvent *key_press = new QKeyEvent(QKeyEvent::KeyPress, Qt::Key_PageDown, Qt::NoModifier, "PageDown");
     QApplication::sendEvent(ui->tableView, key_press);
 }
 

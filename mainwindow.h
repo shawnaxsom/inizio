@@ -64,6 +64,8 @@ private slots:
     void down();
     void left();
     void right();
+    void pageUp();
+    void pageDown();
 
     void forEachSelection(std::function<void(QModelIndex, QString)> func, std::function<void()> callback);
 
