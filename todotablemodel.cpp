@@ -5,6 +5,7 @@
 #include <QFont>
 #include <QColor>
 #include <QSettings>
+#include <QDebug>
 
 vector<QString> todo_data;
 
@@ -158,15 +159,21 @@ bool TodoTableModel::setData(const QModelIndex & index, const QVariant & value, 
         return false;
     }
 
-   todo_data.clear();
-
   if (shouldEndResetModel) {
+    todo_data.clear();
     endResetModel(); // Can't call this if working in a batch list or it will segfault
   }
 
   emit dataChanged(index, index); // Detta innebär ju också att denna item är den som är selected just nu så vi kan lyssna på den signalen
 
   return true;
+}
+
+bool TodoTableModel::toggleRow(const QModelIndex & index, bool shouldEndResetModel)
+{
+    bool newCheckedValue = todo_data.at(index.row()).at(0) == 'x' ? false : true;
+    qDebug()<<"New checked value"<<newCheckedValue<<"index:"<<index;
+    return setData(index, newCheckedValue, Qt::CheckStateRole, shouldEndResetModel);
 }
 
 void TodoTableModel::endReset(){

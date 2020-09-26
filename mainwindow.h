@@ -26,13 +26,13 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    
+
 public:
     explicit MainWindow(QWidget *parent = 0);
     void parse_todotxt();
     void addTodo(QString &s);
     ~MainWindow();
-    
+
 public slots:
     void fileModified(const QString& str);
     void requestReceived(QNetworkReply* reply);
@@ -57,6 +57,8 @@ private slots:
     void on_pushButton_4_clicked();
 
     void dataInModelChanged(QModelIndex i1,QModelIndex i2);
+
+    void completeTasks();
 
     void launchUrl();
 

@@ -132,6 +132,10 @@ MainWindow::MainWindow(QWidget *parent) :
     launchshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(launchshortcut,SIGNAL(activated()),this,SLOT(launchUrl()));
 
+    auto completeTasksShortcut = new QShortcut(QKeySequence(Qt::Key_Space),ui->tableView);
+    completeTasksShortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(completeTasksShortcut,SIGNAL(activated()),this,SLOT(completeTasks()));
+
     auto upshortcut = new QShortcut(QKeySequence(tr("k")),ui->tableView);
     upshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(upshortcut,SIGNAL(activated()),this,SLOT(up()));
@@ -213,8 +217,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 }
 
-
-
 // This method is for making sure we're re-selecting the item that has been edited
 void MainWindow::dataInModelChanged(QModelIndex i1,QModelIndex i2){
     Q_UNUSED(i2);
@@ -234,6 +236,7 @@ MainWindow::~MainWindow()
     delete model;
 }
 
+// proxyModel is a filtered view of the UI model
 QSortFilterProxyModel *proxyModel=NULL;
 
 QFileSystemWatcher *watcher;
@@ -691,6 +694,16 @@ void MainWindow::launchUrl()
     if(!URL.isEmpty()){
         QDesktopServices::openUrl(URL);
     }
+}
+
+void MainWindow::completeTasks()
+{
+    forEachSelection([=](QModelIndex index, QString data) {
+        auto checkbox = ui->tableView->model()->index(index.row(), 0);
+        model->toggleRow(proxyModel->mapToSource(checkbox), false);
+    }, [=]() {
+        model->endReset();
+    });
 }
 
 void MainWindow::up()
