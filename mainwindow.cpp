@@ -156,6 +156,12 @@ MainWindow::MainWindow(QWidget *parent) :
     appendshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(appendshortcut,SIGNAL(activated()),this,SLOT(showAppendDialog()));
 
+    if(settings.value(SETTINGS_THRESHOLD).toBool()){
+        auto thresholdshortcut = new QShortcut(QKeySequence(tr("t")),ui->tableView);
+        thresholdshortcut->setContext(Qt::WidgetShortcut);
+        QObject::connect(thresholdshortcut,SIGNAL(activated()),this,SLOT(showThresholdDialog()));
+    }
+
     auto pageupshortcut = new QShortcut(QKeySequence(tr("u")),ui->tableView);
     pageupshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(pageupshortcut,SIGNAL(activated()),this,SLOT(pageUp()));
@@ -756,6 +762,55 @@ void MainWindow::showAppendDialog()
         forEachSelection([=](QModelIndex index, QString data) {
             data.append(" ");
             data.append(text);
+            model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
+        }, [=]() {
+            model->endReset();
+        });
+    }
+}
+
+void MainWindow::showThresholdDialog()
+{
+    auto dialog = new QInputDialog(this);
+    dialog->setWindowTitle("Set Threshold Date");
+    dialog->setLabelText("YYYY-MM-DD");
+
+    auto todo = new todotxt();
+    QModelIndex index = ui->tableView->selectionModel()->selection().indexes().first();
+    QString firstData = ui->tableView->model()->data(index, Qt::UserRole).toString();
+
+    QRegularExpression threshold("(t:[\\d-]+)");
+    QRegularExpressionMatch m = threshold.match(firstData);
+
+    if (m.hasMatch()) {
+        QString value = m.captured(1);
+        dialog->setTextValue(value);
+    } else {
+        QString value = "t:" + todo->getToday();
+        dialog->setTextValue(value);
+    }
+
+    dialog->setTextEchoMode(QLineEdit::Normal);
+    const int ret = dialog->exec();
+    if (ret) {
+        QRegularExpression threshold_shorthand("(t:\\+\\d+[dwmypb])");
+        QString text = dialog->textValue();
+
+        QRegularExpressionMatch m = threshold_shorthand.match(text);
+        if(m.hasMatch()) {
+            QString value = "t:" + todo->getRelativeDate(m.captured(1));
+            text = text.replace(m.captured(1), value);
+        }
+
+        forEachSelection([=](QModelIndex index, QString data) {
+            QRegularExpressionMatch m = threshold.match(data);
+            if(m.hasMatch()) {
+                data = data.replace(m.captured(1), text);
+            } else {
+                data.append(" ");
+                data.append(text);
+            }
+
             model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
         }, [=]() {
             model->endReset();
