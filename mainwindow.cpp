@@ -793,14 +793,7 @@ void MainWindow::showThresholdDialog()
     dialog->setTextEchoMode(QLineEdit::Normal);
     const int ret = dialog->exec();
     if (ret) {
-        QRegularExpression threshold_shorthand("(t:\\+\\d+[dwmypb])");
         QString text = dialog->textValue();
-
-        QRegularExpressionMatch m = threshold_shorthand.match(text);
-        if(m.hasMatch()) {
-            QString value = "t:" + todo->getRelativeDate(m.captured(1));
-            text = text.replace(m.captured(1), value);
-        }
 
         forEachSelection([=](QModelIndex index, QString data) {
             QRegularExpressionMatch m = threshold.match(data);
