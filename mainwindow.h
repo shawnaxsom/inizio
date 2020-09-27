@@ -9,6 +9,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
+#include "todotxt.h"
 
 #ifdef Q_OS_OSX
     #define VERSION_URL "https://nerdur.com/todour-latest_mac.php"
@@ -38,6 +39,9 @@ public slots:
     void requestReceived(QNetworkReply* reply);
     void undo();
     void redo();
+
+protected:
+    todotxt *todo;
 
 private slots:
     void on_lineEdit_2_textEdited(const QString &arg1);

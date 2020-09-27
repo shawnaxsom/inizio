@@ -35,6 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    todo = new todotxt();
 
     ui->setupUi(this);
     QString title=this->windowTitle();
@@ -241,6 +242,7 @@ void MainWindow::dataInModelChanged(QModelIndex i1,QModelIndex i2){
 
 MainWindow::~MainWindow()
 {
+    delete todo;
     delete ui;
     delete networkaccessmanager;
     delete model;
@@ -373,9 +375,10 @@ void MainWindow::on_lineEdit_2_returnPressed()
         updateSearchResults();
     } else {
         auto index = ui->tableView->model()->index(0, 1);
-        ui->tableView->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
-        ui->tableView->setFocus(Qt::OtherFocusReason);
+        // ui->tableView->selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
+        // ui->tableView->setFocus(Qt::OtherFocusReason);
         saved_selection = model->data(index,Qt::UserRole).toString();
+        // model->refresh();// Not 100% sure why this is needed.. Should be done by re-setting the model above
         resetTableSelection();
     }
 
@@ -789,7 +792,6 @@ void MainWindow::showDateDialog(QString typeName, QString prefix, QString dateRe
     dialog->setWindowTitle("Set " + typeName + " Date");
     dialog->setLabelText("YYYY-MM-DD or 999[dwmypb]");
 
-    auto todo = new todotxt();
     QModelIndex index = ui->tableView->selectionModel()->selection().indexes().first();
     QString firstData = ui->tableView->model()->data(index, Qt::UserRole).toString();
 
