@@ -606,7 +606,7 @@ void todotxt::update(QString &row, bool checked, QString &newrow){
     }
 
     if(settings.value(SETTINGS_DUE).toBool()){
-        QRegularExpression due_shorthand("(due:\\+\\d+[dwmypb])");
+        QRegularExpression due_shorthand("(due:\\+?\\d+[dwmypb])");
         QRegularExpressionMatch m = due_shorthand.match(newrow);
         if(m.hasMatch()){
             newrow = newrow.replace(m.captured(1),"due:"+getRelativeDate(m.captured(1).mid(2)));
