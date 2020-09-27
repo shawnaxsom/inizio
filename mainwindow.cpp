@@ -161,7 +161,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(dueshortcut,SIGNAL(activated()),this,SLOT(showDueDialog()));
 
     if(settings.value(SETTINGS_THRESHOLD).toBool()){
-        auto thresholdshortcut = new QShortcut(QKeySequence(tr("Shift+d")),ui->tableView);
+        auto thresholdshortcut = new QShortcut(QKeySequence(tr("t")),ui->tableView);
         thresholdshortcut->setContext(Qt::WidgetShortcut);
         QObject::connect(thresholdshortcut,SIGNAL(activated()),this,SLOT(showThresholdDialog()));
     }
@@ -787,7 +787,7 @@ void MainWindow::showDateDialog(QString typeName, QString prefix, QString dateRe
 {
     auto dialog = new QInputDialog(this);
     dialog->setWindowTitle("Set " + typeName + " Date");
-    dialog->setLabelText("YYYY-MM-DD");
+    dialog->setLabelText("YYYY-MM-DD or 999[dwmypb]");
 
     auto todo = new todotxt();
     QModelIndex index = ui->tableView->selectionModel()->selection().indexes().first();
@@ -812,7 +812,11 @@ void MainWindow::showDateDialog(QString typeName, QString prefix, QString dateRe
         forEachSelection([=](QModelIndex index, QString data) {
             QRegularExpressionMatch m = dateRegex.match(data);
             if(m.hasMatch()) {
-                data = data.replace(m.captured(1), text);
+                if (text == prefix) {
+                    data = data.replace(" " + m.captured(1), "");
+                } else {
+                    data = data.replace(m.captured(1), text);
+                }
             } else {
                 data.append(" ");
                 data.append(text);
