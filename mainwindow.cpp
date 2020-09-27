@@ -156,17 +156,21 @@ MainWindow::MainWindow(QWidget *parent) :
     appendshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(appendshortcut,SIGNAL(activated()),this,SLOT(showAppendDialog()));
 
+    auto dueshortcut = new QShortcut(QKeySequence(tr("d")),ui->tableView);
+    dueshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(dueshortcut,SIGNAL(activated()),this,SLOT(showDueDialog()));
+
     if(settings.value(SETTINGS_THRESHOLD).toBool()){
-        auto thresholdshortcut = new QShortcut(QKeySequence(tr("t")),ui->tableView);
+        auto thresholdshortcut = new QShortcut(QKeySequence(tr("Shift+d")),ui->tableView);
         thresholdshortcut->setContext(Qt::WidgetShortcut);
         QObject::connect(thresholdshortcut,SIGNAL(activated()),this,SLOT(showThresholdDialog()));
     }
 
-    auto pageupshortcut = new QShortcut(QKeySequence(tr("u")),ui->tableView);
+    auto pageupshortcut = new QShortcut(QKeySequence(tr("Ctrl+u")),ui->tableView);
     pageupshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(pageupshortcut,SIGNAL(activated()),this,SLOT(pageUp()));
 
-    auto pagedownshortcut = new QShortcut(QKeySequence(tr("d")),ui->tableView);
+    auto pagedownshortcut = new QShortcut(QKeySequence(tr("Ctrl+d")),ui->tableView);
     pagedownshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(pagedownshortcut,SIGNAL(activated()),this,SLOT(pageDown()));
 
@@ -771,32 +775,42 @@ void MainWindow::showAppendDialog()
 
 void MainWindow::showThresholdDialog()
 {
+    showDateDialog("Threshold", "t:", "(t:[\\d-]+)");
+}
+
+void MainWindow::showDueDialog()
+{
+    showDateDialog("Due", "due:", "(due:[\\d-]+)");
+}
+
+void MainWindow::showDateDialog(QString typeName, QString prefix, QString dateRegexString)
+{
     auto dialog = new QInputDialog(this);
-    dialog->setWindowTitle("Set Threshold Date");
+    dialog->setWindowTitle("Set " + typeName + " Date");
     dialog->setLabelText("YYYY-MM-DD");
 
     auto todo = new todotxt();
     QModelIndex index = ui->tableView->selectionModel()->selection().indexes().first();
     QString firstData = ui->tableView->model()->data(index, Qt::UserRole).toString();
 
-    QRegularExpression threshold("(t:[\\d-]+)");
-    QRegularExpressionMatch m = threshold.match(firstData);
+    QRegularExpression dateRegex(dateRegexString);
+    QRegularExpressionMatch m = dateRegex.match(firstData);
 
     if (m.hasMatch()) {
         QString value = m.captured(1);
-        dialog->setTextValue(value);
+        dialog->setTextValue(value.replace(prefix, ""));
     } else {
-        QString value = "t:" + todo->getToday();
-        dialog->setTextValue(value);
+        QString value = prefix + todo->getToday();
+        dialog->setTextValue(value.replace(prefix, ""));
     }
 
     dialog->setTextEchoMode(QLineEdit::Normal);
     const int ret = dialog->exec();
     if (ret) {
-        QString text = dialog->textValue();
+        QString text = prefix + dialog->textValue();
 
         forEachSelection([=](QModelIndex index, QString data) {
-            QRegularExpressionMatch m = threshold.match(data);
+            QRegularExpressionMatch m = dateRegex.match(data);
             if(m.hasMatch()) {
                 data = data.replace(m.captured(1), text);
             } else {

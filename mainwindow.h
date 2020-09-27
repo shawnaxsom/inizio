@@ -71,6 +71,8 @@ private slots:
 
     void forEachSelection(std::function<void(QModelIndex, QString)> func, std::function<void()> callback);
 
+    void showDateDialog(QString typeName, QString prefix, QString dateRegexString);
+    void showDueDialog();
     void showThresholdDialog();
     void showAppendDialog();
 
