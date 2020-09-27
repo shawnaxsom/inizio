@@ -156,8 +156,12 @@ MainWindow::MainWindow(QWidget *parent) :
     appendshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(appendshortcut,SIGNAL(activated()),this,SLOT(showAppendDialog()));
 
+    // auto thresholdshortcut = new QShortcut(QKeySequence(tr("t")),ui->tableView);
+    // thresholdshortcut->setContext(Qt::WidgetShortcut);
+    // QObject::connect(thresholdshortcut,SIGNAL(activated()),this,SLOT(showThresholdDialog()));
+
     if(settings.value(SETTINGS_THRESHOLD).toBool()){
-        auto thresholdshortcut = new QShortcut(QKeySequence(tr("t")),ui->tableView);
+        auto thresholdshortcut = new QShortcut(QKeySequence(tr("D")),ui->tableView);
         thresholdshortcut->setContext(Qt::WidgetShortcut);
         QObject::connect(thresholdshortcut,SIGNAL(activated()),this,SLOT(showThresholdDialog()));
     }
