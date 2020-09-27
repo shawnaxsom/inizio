@@ -234,7 +234,13 @@ void MainWindow::dataInModelChanged(QModelIndex i1,QModelIndex i2){
     //qDebug()<<"Data in Model changed emitted:"<<i1.data(Qt::UserRole)<<"::"<<i2.data(Qt::UserRole)<<endl;
     //qDebug()<<"Changed:R="<<i1.row()<<":C="<<i1.column()<<endl;
     saved_selection = i1.data(Qt::UserRole).toString();
-    resetTableSelection();
+    QSettings settings;
+    if(settings.value(SETTINGS_AUTOREFRESH).toBool()==false) {
+        // Reselect the previously selected line
+        // Avoid with autorefresh, since that will also attempt this after the file reloads
+        // TODO: settings seem cached, the app has to restart for this to apply if the user toggles the setting.
+        resetTableSelection();
+    }
     updateTitle();
 
 }
@@ -580,15 +586,15 @@ void MainWindow::resetTableSelection(){
         // Set the selection again
         QModelIndexList foundIndexes = model->match(QModelIndex(),Qt::UserRole,saved_selection);
         if(foundIndexes.count()>0){
-            //qDebug()<<"Found at index: "<<foundIndexes.at(0)<<endl;
+            auto index = proxyModel->mapFromSource(foundIndexes.at(0));
             ui->tableView->setFocus(Qt::OtherFocusReason);
-            ui->tableView->selectionModel()->select(foundIndexes.at(0),QItemSelectionModel::Select);
-            ui->tableView->selectionModel()->setCurrentIndex(foundIndexes.at(0),QItemSelectionModel::ClearAndSelect);
-            //ui->tableView->setCurrentIndex(foundIndexes.at(0));
+            ui->tableView->selectionModel()->select(index, QItemSelectionModel::Select);
+            ui->tableView->selectionModel()->setCurrentIndex(index,QItemSelectionModel::ClearAndSelect);
+            ui->tableView->setCurrentIndex(index);
        }
     }
-    saved_selection="";
 
+    saved_selection="";
 }
 
 void MainWindow::cleanup(){
