@@ -66,6 +66,8 @@ private slots:
 
     void launchUrl();
 
+    void deleteSelected();
+
     void up();
     void down();
     void left();

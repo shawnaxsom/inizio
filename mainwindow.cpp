@@ -175,6 +175,10 @@ MainWindow::MainWindow(QWidget *parent) :
     pagedownshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(pagedownshortcut,SIGNAL(activated()),this,SLOT(pageDown()));
 
+    auto deleteshortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Backspace),ui->tableView);
+    deleteshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(deleteshortcut,SIGNAL(activated()),this,SLOT(deleteSelected()));
+
     //auto contextshortcut = new QShortcut(QKeySequence(tr("Ctrl+l")),this);
     //QObject::connect(contextshortcut,SIGNAL(activated()),ui->context_lock,SLOT(setChecked(!(ui->context_lock->isChecked()))));
     QObject::connect(model,SIGNAL(dataChanged (const QModelIndex , const QModelIndex )),this,SLOT(dataInModelChanged(QModelIndex,QModelIndex)));
@@ -535,6 +539,11 @@ void MainWindow::on_lineEdit_returnPressed()
 }
 
 void MainWindow::on_pushButton_2_clicked()
+{
+    deleteSelected();
+}
+
+void MainWindow::deleteSelected()
 {
     // Remove the selected item
     QModelIndexList indexes = ui->tableView->selectionModel()->selection().indexes();
