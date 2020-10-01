@@ -75,6 +75,9 @@ private slots:
     void pageUp();
     void pageDown();
 
+    void increasePriority();
+    void decreasePriority();
+
     void forEachSelection(std::function<void(QModelIndex, QString)> func, std::function<void()> callback);
 
     void showDateDialog(QString typeName, QString prefix, QString dateRegexString);

@@ -179,6 +179,14 @@ MainWindow::MainWindow(QWidget *parent) :
     deleteshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(deleteshortcut,SIGNAL(activated()),this,SLOT(deleteSelected()));
 
+    auto increasepriorityshortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Up),ui->tableView);
+    increasepriorityshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(increasepriorityshortcut,SIGNAL(activated()),this,SLOT(increasePriority()));
+
+    auto decreasepriorityshortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Down),ui->tableView);
+    decreasepriorityshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(decreasepriorityshortcut,SIGNAL(activated()),this,SLOT(decreasePriority()));
+
     //auto contextshortcut = new QShortcut(QKeySequence(tr("Ctrl+l")),this);
     //QObject::connect(contextshortcut,SIGNAL(activated()),ui->context_lock,SLOT(setChecked(!(ui->context_lock->isChecked()))));
     QObject::connect(model,SIGNAL(dataChanged (const QModelIndex , const QModelIndex )),this,SLOT(dataInModelChanged(QModelIndex,QModelIndex)));
@@ -843,6 +851,48 @@ void MainWindow::showDateDialog(QString typeName, QString prefix, QString dateRe
             model->endReset();
         });
     }
+}
+
+void MainWindow::increasePriority()
+{
+    QRegularExpression priorityRegex("^\\(([A-Z])\\)");
+
+    forEachSelection([=](QModelIndex index, QString data) {
+        QRegularExpressionMatch m = priorityRegex.match(data);
+        if (m.hasMatch()) {
+            auto newValue = QString(m.captured(1)[0]).at(0).toLatin1() - 1;
+            if (newValue >= 65) {
+                data = data.replace("(" + m.captured(1) + ")", "(" + (QString(newValue)) + ")");
+            }
+        } else {
+            data = data.prepend("(A) ");
+        }
+
+        model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
+    }, [=]() {
+        model->endReset();
+    });
+}
+
+void MainWindow::decreasePriority()
+{
+    QRegularExpression priorityRegex("^\\(([A-Z])\\)");
+
+    forEachSelection([=](QModelIndex index, QString data) {
+        QRegularExpressionMatch m = priorityRegex.match(data);
+        if (m.hasMatch()) {
+            auto newValue = QString(m.captured(1)[0]).at(0).toLatin1() + 1;
+            if (newValue <= 90) {
+                data = data.replace("(" + m.captured(1) + ")", "(" + (QString(newValue)) + ")");
+            }
+        } else {
+            data = data.prepend("(A) ");
+        }
+
+        model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
+    }, [=]() {
+        model->endReset();
+    });
 }
 
 void MainWindow::forEachSelection(std::function<void(QModelIndex, QString)> func, std::function<void()> callback) {
