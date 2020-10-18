@@ -1001,7 +1001,9 @@ void MainWindow::on_lv_activetags_clicked(QModelIndex index)
       newSearch += " " + selectedContext;
     }
 
-    ui->lineEdit_2->setText(newSearch.simplified());
+    ui->lineEdit_2->setText(newSearch.simplified() + " ");
 
     updateSearchResults();
+
+    ui->lineEdit_2->setFocus();
 }
