@@ -28,6 +28,7 @@
 #include <QInputDialog>
 #include <QStringListModel>
 #include <QAbstractItemView>
+#include <QTimer>
 
 QNetworkAccessManager *networkaccessmanager;
 TodoTableModel *model=NULL;
@@ -204,7 +205,9 @@ MainWindow::MainWindow(QWidget *parent) :
     //auto contextshortcut = new QShortcut(QKeySequence(tr("Ctrl+l")),this);
     //QObject::connect(contextshortcut,SIGNAL(activated()),ui->context_lock,SLOT(setChecked(!(ui->context_lock->isChecked()))));
     QObject::connect(model,SIGNAL(dataChanged (const QModelIndex , const QModelIndex )),this,SLOT(dataInModelChanged(QModelIndex,QModelIndex)));
-    ui->tableView->setWordWrap(true);
+
+    // Resize tableView row height on first load, and then again when resizing window
+    QTimer::singleShot(1, ui->tableView, SLOT(resizeRowsToContents()));
     connect(
         ui->tableView->horizontalHeader(),
         SIGNAL(sectionResized(int, int, int)),
@@ -366,7 +369,7 @@ void MainWindow::parse_todotxt(){
     //ui->tableView->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
     ui->tableView->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch);
     ui->tableView->resizeColumnToContents(0); // Checkboxes kept small
-    //ui->tableView->resizeRowsToContents(); Om denna körs senare blir det riktigt bra, men inte här..
+    ui->tableView->setWordWrap(true);
 
     listModel = new QStringListModel(this);
     ui->lv_activetags->setModel(listModel);
