@@ -112,6 +112,8 @@ private slots:
 
     void on_actionRedo_triggered();
 
+    void on_lv_activetags_clicked(QModelIndex index);
+
 private:
     void setFileWatch();
     void requestPage(QString &s);

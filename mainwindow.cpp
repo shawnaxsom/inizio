@@ -26,9 +26,13 @@
 #include <QDate>
 #include <QDateEdit>
 #include <QInputDialog>
+#include <QStringListModel>
+#include <QAbstractItemView>
 
 QNetworkAccessManager *networkaccessmanager;
 TodoTableModel *model=NULL;
+QStringListModel *listModel=NULL;
+
 QString saved_selection; // Used for selection memory
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -210,7 +214,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->context_lock->setChecked(settings.value(SETTINGS_CONTEXT_LOCK,DEFAULT_CONTEXT_LOCK).toBool());
     updateSearchResults(); // Since we may have set a value in the search window
 
-    ui->lv_activetags->hide(); //  Not being used yet
+    /* ui->lv_activetags->hide(); //  Not being used yet */
+    ui->lv_activetags->setMaximumSize(QSize(100, 99999));
+    ui->lv_activetags->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->newVersionView->hide(); // This defaults to not being shown
     ui->cb_showaall->setChecked(settings.value(SETTINGS_SHOW_ALL,DEFAULT_SHOW_ALL).toBool());
     ui->cb_threshold_inactive->setChecked(settings.value(SETTINGS_THRESHOLD_INACTIVE,DEFAULT_THRESHOLD_INACTIVE).toBool());
@@ -264,6 +270,7 @@ MainWindow::~MainWindow()
     delete ui;
     delete networkaccessmanager;
     delete model;
+    delete listModel;
 }
 
 // proxyModel is a filtered view of the UI model
@@ -350,6 +357,22 @@ void MainWindow::parse_todotxt(){
     ui->tableView->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch);
     ui->tableView->resizeColumnToContents(0); // Checkboxes kept small
     //ui->tableView->resizeRowsToContents(); Om denna körs senare blir det riktigt bra, men inte här..
+
+    listModel = new QStringListModel(this);
+    ui->lv_activetags->setModel(listModel);
+    int row = listModel->rowCount();
+
+    listModel->insertRows(row, 10);
+    listModel->setData(listModel->index(0), "@now");
+    listModel->setData(listModel->index(1), "@today");
+    listModel->setData(listModel->index(2), "@home");
+    listModel->setData(listModel->index(3), "@work");
+    listModel->setData(listModel->index(4), "@break");
+    listModel->setData(listModel->index(5), "@sideprojects");
+    listModel->setData(listModel->index(6), "@habits");
+    listModel->setData(listModel->index(7), "@learning");
+    listModel->setData(listModel->index(8), "@research");
+    listModel->setData(listModel->index(9), "+background");
 }
 
 void MainWindow::on_lineEdit_2_textEdited(const QString &arg1)
@@ -948,4 +971,37 @@ void MainWindow::on_actionRedo_triggered()
 {
     redo();
     updateTitle();
+}
+
+void MainWindow::on_lv_activetags_clicked(QModelIndex index)
+{
+    QString previousSearch = ui->lineEdit_2->text().simplified();
+    QString newSearch = "";
+
+    QString selectedContext = index.data().toString();
+
+    QStringList words = previousSearch.split(QRegularExpression("\\s+"));
+    QString regexpstring="(?=^.*$)"; // Seems a negative lookahead can't be first (!?), so this is a workaround
+
+    bool found = false;
+
+    for (QString word:words){
+      if (word == selectedContext) {
+        found = true;
+        newSearch += " !" + word;
+      } else if (word == "!" + selectedContext) {
+        found = true;
+        continue;
+      } else {
+        newSearch += " " + word;
+      }
+    }
+
+    if (!found) {
+      newSearch += " " + selectedContext;
+    }
+
+    ui->lineEdit_2->setText(newSearch.simplified());
+
+    updateSearchResults();
 }
