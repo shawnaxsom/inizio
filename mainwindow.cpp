@@ -375,17 +375,22 @@ void MainWindow::parse_todotxt(){
     ui->lv_activetags->setModel(listModel);
     int row = listModel->rowCount();
 
-    listModel->insertRows(row, 10);
-    listModel->setData(listModel->index(0), "@now");
-    listModel->setData(listModel->index(1), "@today");
-    listModel->setData(listModel->index(2), "@home");
-    listModel->setData(listModel->index(3), "@work");
-    listModel->setData(listModel->index(4), "@break");
-    listModel->setData(listModel->index(5), "@sideprojects");
-    listModel->setData(listModel->index(6), "@habits");
-    listModel->setData(listModel->index(7), "@learning");
-    listModel->setData(listModel->index(8), "@research");
-    listModel->setData(listModel->index(9), "+background");
+    listModel->insertRows(row, 15);
+    listModel->setData(listModel->index(0), "(A)");
+    listModel->setData(listModel->index(1), "(B)");
+    listModel->setData(listModel->index(2), "(C)");
+    listModel->setData(listModel->index(3), "@now");
+    listModel->setData(listModel->index(4), "@today");
+    listModel->setData(listModel->index(5), "@tonight");
+    listModel->setData(listModel->index(6), "@waiting");
+    listModel->setData(listModel->index(7), "@home");
+    listModel->setData(listModel->index(8), "@work");
+    listModel->setData(listModel->index(9), "@break");
+    listModel->setData(listModel->index(10), "@sideprojects");
+    listModel->setData(listModel->index(11), "@habits");
+    listModel->setData(listModel->index(12), "@learning");
+    listModel->setData(listModel->index(13), "@research");
+    listModel->setData(listModel->index(14), "+background");
 }
 
 void MainWindow::on_lineEdit_2_textEdited(const QString &arg1)
