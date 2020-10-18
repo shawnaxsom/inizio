@@ -130,8 +130,18 @@ MainWindow::MainWindow(QWidget *parent) :
     auto editshortcut = new QShortcut(QKeySequence(tr("Ctrl+n")),this);
     QObject::connect(editshortcut,SIGNAL(activated()),ui->lineEdit,SLOT(setFocus()));
 
+
     auto findshortcut = new QShortcut(QKeySequence(tr("Ctrl+f")),this);
     QObject::connect(findshortcut,SIGNAL(activated()),ui->lineEdit_2,SLOT(setFocus()));
+
+    auto clearshortcut = new QShortcut(QKeySequence(tr("Esc")),ui->lineEdit_2);
+    clearshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(clearshortcut,SIGNAL(activated()),this,SLOT(clearSearch()));
+
+    auto clearshortcut2 = new QShortcut(QKeySequence(tr("Esc")),ui->tableView);
+    clearshortcut2->setContext(Qt::WidgetShortcut);
+    QObject::connect(clearshortcut2,SIGNAL(activated()),this,SLOT(clearSearch()));
+
 
     auto launchshortcut = new QShortcut(QKeySequence(tr("o")),ui->tableView);
     launchshortcut->setContext(Qt::WidgetShortcut);
@@ -743,6 +753,15 @@ void MainWindow::redo()
         model->refresh();
     }
 
+}
+
+void MainWindow::clearSearch()
+{
+    ui->lineEdit_2->setText("");
+
+    updateSearchResults();
+
+    ui->lineEdit_2->setFocus();
 }
 
 void MainWindow::launchUrl()
