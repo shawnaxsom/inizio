@@ -1032,5 +1032,7 @@ void MainWindow::on_lv_activetags_clicked(QModelIndex index)
 
     updateSearchResults();
 
+    ui->lv_activetags->clearSelection();
+
     ui->lineEdit_2->setFocus();
 }
