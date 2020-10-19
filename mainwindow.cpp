@@ -873,7 +873,7 @@ void MainWindow::showAppendDialog()
         forEachSelection([=](QModelIndex index, QString data) {
             data.append(" ");
             data.append(text);
-            model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
+            model->setData(proxyModel->mapToSource(index), data.simplified(), Qt::EditRole, false);
         }, [=]() {
             model->endReset();
         });
@@ -893,7 +893,7 @@ void MainWindow::showRemovalDialog()
 
         forEachSelection([=](QModelIndex index, QString data) {
             data.replace(text, "");
-            model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
+            model->setData(proxyModel->mapToSource(index), data.simplified(), Qt::EditRole, false);
         }, [=]() {
             model->endReset();
         });
