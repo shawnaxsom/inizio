@@ -69,7 +69,9 @@ private slots:
     void deleteSelected();
 
     void up();
+    void shiftUp();
     void down();
+    void shiftDown();
     void left();
     void right();
     void pageUp();

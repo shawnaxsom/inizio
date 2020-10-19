@@ -156,9 +156,17 @@ MainWindow::MainWindow(QWidget *parent) :
     upshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(upshortcut,SIGNAL(activated()),this,SLOT(up()));
 
+    auto shiftupshortcut = new QShortcut(QKeySequence(tr("Shift+k")),ui->tableView);
+    shiftupshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(shiftupshortcut,SIGNAL(activated()),this,SLOT(shiftUp()));
+
     auto downshortcut = new QShortcut(QKeySequence(tr("j")),ui->tableView);
     downshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(downshortcut,SIGNAL(activated()),this,SLOT(down()));
+
+    auto shiftdownshortcut = new QShortcut(QKeySequence(tr("Shift+j")),ui->tableView);
+    shiftdownshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(shiftdownshortcut,SIGNAL(activated()),this,SLOT(shiftDown()));
 
     auto leftshortcut = new QShortcut(QKeySequence(tr("h")),ui->tableView);
     leftshortcut->setContext(Qt::WidgetShortcut);
@@ -801,9 +809,21 @@ void MainWindow::up()
     QApplication::sendEvent(ui->tableView, key_press);
 }
 
+void MainWindow::shiftUp()
+{
+    QKeyEvent *key_press = new QKeyEvent(QKeyEvent::KeyPress, Qt::Key_Up, Qt::ShiftModifier, "Up");
+    QApplication::sendEvent(ui->tableView, key_press);
+}
+
 void MainWindow::down()
 {
     QKeyEvent *key_press = new QKeyEvent(QKeyEvent::KeyPress, Qt::Key_Down, Qt::NoModifier, "Down");
+    QApplication::sendEvent(ui->tableView, key_press);
+}
+
+void MainWindow::shiftDown()
+{
+    QKeyEvent *key_press = new QKeyEvent(QKeyEvent::KeyPress, Qt::Key_Down, Qt::ShiftModifier, "Down");
     QApplication::sendEvent(ui->tableView, key_press);
 }
 
