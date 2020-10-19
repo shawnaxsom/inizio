@@ -210,9 +210,17 @@ MainWindow::MainWindow(QWidget *parent) :
     increasepriorityshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(increasepriorityshortcut,SIGNAL(activated()),this,SLOT(increasePriority()));
 
+    auto increasepriorityshortcut2 = new QShortcut(QKeySequence(tr("Ctrl+k")),ui->tableView);
+    increasepriorityshortcut2->setContext(Qt::WidgetShortcut);
+    QObject::connect(increasepriorityshortcut2,SIGNAL(activated()),this,SLOT(increasePriority()));
+
     auto decreasepriorityshortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Down),ui->tableView);
     decreasepriorityshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(decreasepriorityshortcut,SIGNAL(activated()),this,SLOT(decreasePriority()));
+
+    auto decreasepriorityshortcut2 = new QShortcut(QKeySequence(tr("Ctrl+j")),ui->tableView);
+    decreasepriorityshortcut2->setContext(Qt::WidgetShortcut);
+    QObject::connect(decreasepriorityshortcut2,SIGNAL(activated()),this,SLOT(decreasePriority()));
 
     //auto contextshortcut = new QShortcut(QKeySequence(tr("Ctrl+l")),this);
     //QObject::connect(contextshortcut,SIGNAL(activated()),ui->context_lock,SLOT(setChecked(!(ui->context_lock->isChecked()))));
