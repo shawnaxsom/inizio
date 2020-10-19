@@ -86,6 +86,7 @@ private slots:
     void showDueDialog();
     void showThresholdDialog();
     void showAppendDialog();
+    void showRemovalDialog();
 
     void on_btn_Alphabetical_toggled(bool checked);
 

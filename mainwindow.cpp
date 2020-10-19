@@ -172,6 +172,10 @@ MainWindow::MainWindow(QWidget *parent) :
     appendshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(appendshortcut,SIGNAL(activated()),this,SLOT(showAppendDialog()));
 
+    auto removalshortcut = new QShortcut(QKeySequence(tr("r")),ui->tableView);
+    removalshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(removalshortcut,SIGNAL(activated()),this,SLOT(showRemovalDialog()));
+
     auto dueshortcut = new QShortcut(QKeySequence(tr("d")),ui->tableView);
     dueshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(dueshortcut,SIGNAL(activated()),this,SLOT(showDueDialog()));
@@ -831,7 +835,7 @@ void MainWindow::showAppendDialog()
 {
     auto dialog = new QInputDialog(this);
     dialog->setWindowTitle("Append Text");
-    dialog->setLabelText("Text");
+    dialog->setLabelText("Text to append");
     dialog->setTextValue("");
     dialog->setTextEchoMode(QLineEdit::Normal);
     const int ret = dialog->exec();
@@ -841,6 +845,26 @@ void MainWindow::showAppendDialog()
         forEachSelection([=](QModelIndex index, QString data) {
             data.append(" ");
             data.append(text);
+            model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
+        }, [=]() {
+            model->endReset();
+        });
+    }
+}
+
+void MainWindow::showRemovalDialog()
+{
+    auto dialog = new QInputDialog(this);
+    dialog->setWindowTitle("Remove Text");
+    dialog->setLabelText("Text to remove");
+    dialog->setTextValue("");
+    dialog->setTextEchoMode(QLineEdit::Normal);
+    const int ret = dialog->exec();
+    if (ret) {
+        auto text = dialog->textValue();
+
+        forEachSelection([=](QModelIndex index, QString data) {
+            data.replace(text, "");
             model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
         }, [=]() {
             model->endReset();
