@@ -76,7 +76,7 @@
       <item>
        <widget class="QPushButton" name="btn_Alphabetical">
         <property name="toolTip">
-         <string>Toggle alpabetic sorting</string>
+         <string>Toggle alphabetic sorting</string>
         </property>
         <property name="text">
          <string/>

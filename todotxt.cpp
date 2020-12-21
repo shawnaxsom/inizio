@@ -221,8 +221,10 @@ void todotxt::getAll(QString& filter,vector<QString> &output){
             bool no_show_threshold = threshold_hide((*iter));
 
 
-            if(no_show_threshold){
-                if(settings.value(SETTINGS_THRESHOLD_INACTIVE).toBool()){
+            if (no_show_threshold)
+            {
+                if (settings.value(SETTINGS_THRESHOLD_INACTIVE).toBool())
+                {
                     inact=true;
                 } else {
                     continue;
@@ -230,14 +232,22 @@ void todotxt::getAll(QString& filter,vector<QString> &output){
             }
 
 
-            if(!(inact&&separateinactives) && (*iter).at(0) == '(' && (*iter).at(2) == ')'){
+            if (settings.value(SETTINGS_SORT_ALPHA).toBool()
+                    && !(inact&&separateinactives)
+                    && (*iter).at(0) == '(' && (*iter).at(2) == ')')
+            {
                 prio.insert((*iter));
-            } else if ( (*iter).at(0) == 'x'){
+            }
+            else if ( (*iter).at(0) == 'x')
+            {
                 done.push_back((*iter));
-            } else if(inact){
+            }
+            else if (inact)
+            {
                 inactive.push_back((*iter));
             }
-            else {
+            else
+            {
                 open.push_back((*iter));
             }
         }
@@ -602,7 +612,7 @@ void todotxt::update(QString &row, bool checked, QString &newrow){
         QRegularExpressionMatch m = threshold_shorthand.match(newrow);
         if(m.hasMatch()){
             newrow = newrow.replace(m.captured(1),"t:"+getRelativeDate(m.captured(1).mid(2)));
-        }        
+        }
     }
 
     if(settings.value(SETTINGS_DUE).toBool()){
