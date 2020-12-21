@@ -65,6 +65,9 @@ private slots:
     void completeTasks();
 
     void launchUrl();
+    void saveCurrentIndex();
+    void showMessage(QString message);
+    void showMessage(int message);
 
     void deleteSelected();
 

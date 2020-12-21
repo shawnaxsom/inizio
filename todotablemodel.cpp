@@ -144,12 +144,12 @@ bool TodoTableModel::setData(const QModelIndex & index, const QVariant & value, 
 
 bool TodoTableModel::setData(const QModelIndex & index, const QVariant & value, int role, bool shouldEndResetModel)
 {
-    if(index.column()==0 && role == Qt::CheckStateRole)
+    if(role == Qt::CheckStateRole)
     {
         beginResetModel();
         todo->update(todo_data.at(index.row()),value.toBool(),todo_data.at(index.row()));
     }
-    else if(index.column()==1 && role == Qt::EditRole){
+    else if(role == Qt::EditRole){
         beginResetModel();
         bool checked = true?todo_data.at(index.row()).at(0)=='x':false;
         QString s=value.toString();

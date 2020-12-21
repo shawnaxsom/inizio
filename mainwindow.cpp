@@ -29,12 +29,15 @@
 #include <QStringListModel>
 #include <QAbstractItemView>
 #include <QTimer>
+#include <QMessageBox>
 
 QNetworkAccessManager *networkaccessmanager;
 TodoTableModel *model=NULL;
 QStringListModel *listModel=NULL;
 
 QString saved_selection; // Used for selection memory
+int saved_row = -1; // Used for selection memory
+int saved_column = 0; // Used for selection memory
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -666,20 +669,46 @@ void MainWindow::saveTableSelection(){
     }
 }
 
+void MainWindow::showMessage(QString message)
+{
+   QMessageBox *qmb;
+   qmb = new QMessageBox(QMessageBox::NoIcon,
+                  "Hey",
+                  message,
+                  QMessageBox::Ok,
+                  this);
+   qmb->exec();
+   delete qmb;
+}
+
+void MainWindow::showMessage(int message)
+{
+   showMessage(QString::number(message,'f',2));
+}
+
 void MainWindow::resetTableSelection(){
-    if(saved_selection.size()>0){
+   /* showMessage(saved_row); */
+   if (saved_row >= 0) {
+      auto index = ui->tableView->model()->index(saved_row, saved_column);
+      ui->tableView->setCurrentIndex(index);
+      ui->tableView->selectionModel()->select(index, QItemSelectionModel::Select);
+      ui->tableView->selectionModel()->setCurrentIndex(index,QItemSelectionModel::ClearAndSelect);
+      ui->tableView->setFocus(Qt::OtherFocusReason);
+
+      saved_row = -1;
+   } else if(saved_selection.size()>0) {
         // Set the selection again
         QModelIndexList foundIndexes = model->match(QModelIndex(),Qt::UserRole,saved_selection);
         if(foundIndexes.count()>0){
             auto index = proxyModel->mapFromSource(foundIndexes.at(0));
-            ui->tableView->setFocus(Qt::OtherFocusReason);
             ui->tableView->selectionModel()->select(index, QItemSelectionModel::Select);
             ui->tableView->selectionModel()->setCurrentIndex(index,QItemSelectionModel::ClearAndSelect);
             ui->tableView->setCurrentIndex(index);
+            ui->tableView->setFocus(Qt::OtherFocusReason);
        }
-    }
 
-    saved_selection="";
+       saved_selection="";
+    }
 }
 
 void MainWindow::cleanup(){
@@ -808,13 +837,24 @@ void MainWindow::launchUrl()
     }
 }
 
+void MainWindow::saveCurrentIndex()
+{
+    auto index = ui->tableView->selectionModel()->selection().indexes().first();
+    saved_row = index.row();
+    saved_column = index.column();
+}
+
 void MainWindow::completeTasks()
 {
+    saveCurrentIndex();
+
     forEachSelection([=](QModelIndex index, QString data) {
         auto checkbox = ui->tableView->model()->index(index.row(), 0);
         model->toggleRow(proxyModel->mapToSource(checkbox), false);
     }, [=]() {
         model->endReset();
+        ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
+        ui->tableView->setFocus(Qt::OtherFocusReason);
     });
 }
 
@@ -868,6 +908,8 @@ void MainWindow::pageDown()
 
 void MainWindow::showAppendDialog()
 {
+    saveCurrentIndex();
+
     auto dialog = new QInputDialog(this);
     dialog->setWindowTitle("Append Text");
     dialog->setLabelText("Text to append");
@@ -889,6 +931,8 @@ void MainWindow::showAppendDialog()
 
 void MainWindow::showRemovalDialog()
 {
+    saveCurrentIndex();
+
     auto dialog = new QInputDialog(this);
     dialog->setWindowTitle("Remove Text");
     dialog->setLabelText("Text to remove");
@@ -909,11 +953,13 @@ void MainWindow::showRemovalDialog()
 
 void MainWindow::showThresholdDialog()
 {
+    saveCurrentIndex();
     showDateDialog("Threshold", "t:", "(t:[\\d-]+)");
 }
 
 void MainWindow::showDueDialog()
 {
+    saveCurrentIndex();
     showDateDialog("Due", "due:", "(due:[\\d-]+)");
 }
 
@@ -964,6 +1010,8 @@ void MainWindow::showDateDialog(QString typeName, QString prefix, QString dateRe
 
 void MainWindow::increasePriority()
 {
+    saveCurrentIndex();
+
     QRegularExpression priorityRegex("^\\(([A-Z])\\)");
 
     forEachSelection([=](QModelIndex index, QString data) {
@@ -978,11 +1026,15 @@ void MainWindow::increasePriority()
         }
     }, [=]() {
         model->endReset();
+        ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
+        ui->tableView->setFocus(Qt::OtherFocusReason);
     });
 }
 
 void MainWindow::decreasePriority()
 {
+    saveCurrentIndex();
+
     QRegularExpression priorityRegex("^\\(([A-Z])\\)");
 
     forEachSelection([=](QModelIndex index, QString data) {
@@ -997,6 +1049,8 @@ void MainWindow::decreasePriority()
         }
     }, [=]() {
         model->endReset();
+        ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
+        ui->tableView->setFocus(Qt::OtherFocusReason);
     });
 }
 
