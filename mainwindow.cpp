@@ -592,9 +592,16 @@ void MainWindow::addTodo(QString &s){
         // The line should have the context of the search field except any negative search
         QStringList contexts = ui->lineEdit_2->text().split(QRegExp("\\s"));
         for(QString context:contexts){
-         if(context.length()>0 && context.at(0)=='!') continue; // ignore this one
+         if(context.length() > 0 && context.at(0) != '@' && !context.contains("rec:") && !context.contains("t:") && !context.contains("due:") && context.at(0) != '(') continue; // ignore this one
+
          if(!s.contains(context,Qt::CaseInsensitive)){
-             s.append(" "+context);
+            if (context.at(0) == "(" && context.at(2) == ")") {
+               if (s.at(0) != "(") {
+                  s.prepend(context+" ");
+               }
+            } else {
+               s.append(" "+context);
+            }
          }
         }
     }
