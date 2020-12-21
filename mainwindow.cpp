@@ -973,11 +973,9 @@ void MainWindow::increasePriority()
             if (newValue >= 65) {
                 data = data.replace("(" + m.captured(1) + ")", "(" + (QString(newValue)) + ")");
             }
-        } else {
-            data = data.prepend("(A) ");
-        }
 
-        model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
+            model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
+        }
     }, [=]() {
         model->endReset();
     });
@@ -994,11 +992,9 @@ void MainWindow::decreasePriority()
             if (newValue <= 90) {
                 data = data.replace("(" + m.captured(1) + ")", "(" + (QString(newValue)) + ")");
             }
-        } else {
-            data = data.prepend("(A) ");
-        }
 
-        model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
+            model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
+        }
     }, [=]() {
         model->endReset();
     });
