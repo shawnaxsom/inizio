@@ -87,6 +87,33 @@
        </widget>
       </item>
       <item>
+       <widget class="QLineEdit" name="lineEdit_3">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="baseSize">
+         <size>
+          <width>100</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">border: 1px solid lightgray;
+border-radius: 5px;
+</string>
+        </property>
+        <property name="placeholderText">
+         <string>search</string>
+        </property>
+        <property name="clearButtonEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QLineEdit" name="lineEdit_2">
         <property name="minimumSize">
          <size>
@@ -346,6 +373,7 @@ border-radius: 5px;
   <tabstop>lineEdit</tabstop>
   <tabstop>pushButton</tabstop>
   <tabstop>pushButton_2</tabstop>
+  <tabstop>lineEdit_3</tabstop>
   <tabstop>lineEdit_2</tabstop>
   <tabstop>pushButton_3</tabstop>
   <tabstop>pushButton_4</tabstop>

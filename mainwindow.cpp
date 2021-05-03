@@ -427,10 +427,22 @@ void MainWindow::on_lineEdit_2_textEdited(const QString &arg1)
     }
 }
 
+void MainWindow::on_lineEdit_3_textEdited(const QString &arg1)
+{
+    Q_UNUSED(arg1);
+    QSettings settings;
+
+    bool liveUpdate = settings.value(SETTINGS_LIVE_SEARCH).toBool();
+    if(!ui->cb_showaall->checkState() && liveUpdate){
+        updateSearchResults();
+    }
+}
+
 void MainWindow::updateSearchResults(){
     // Take the text of the format of match1 match2 !match3 and turn it into
     //(?=.*match1)(?=.*match2)(?!.*match3) - all escaped of course
-    QStringList words = ui->lineEdit_2->text().split(QRegularExpression("\\s+"));
+    QString fullPhrase = ui->lineEdit_3->text() + " " + ui->lineEdit_2->text();
+    QStringList words = fullPhrase.simplified().split(QRegularExpression("\\s+"));
     QString regexpstring="(?=^.*$)"; // Seems a negative lookahead can't be first (!?), so this is a workaround
     for(QString word:words){
         QString start = "(?=^.*";
@@ -446,6 +458,11 @@ void MainWindow::updateSearchResults(){
     //qDebug()<<"Setting filter: "<<regexp.pattern();
     proxyModel->setFilterKeyColumn(1);
     updateTitle();
+}
+
+void MainWindow::on_lineEdit_3_returnPressed()
+{
+    MainWindow::on_lineEdit_2_returnPressed();
 }
 
 void MainWindow::on_lineEdit_2_returnPressed()
@@ -593,7 +610,8 @@ void MainWindow::addTodo(QString &s){
 
     if(ui->context_lock->isChecked()){
         // The line should have the context of the search field except any negative search
-        QStringList contexts = ui->lineEdit_2->text().split(QRegExp("\\s"));
+        QString fullPhrase = ui->lineEdit_3->text() + " " + ui->lineEdit_2->text();
+        QStringList contexts = fullPhrase.simplified().split(QRegExp("\\s"));
         for(QString context:contexts){
          if(context.length() > 0 && context.at(0) != '@' && !context.contains("rec:") && !context.contains("t:") && !context.contains("due:") && context.at(0) != '(' && context.at(0) != '+') continue; // ignore this one
 
@@ -721,6 +739,7 @@ void MainWindow::cleanup(){
         settings.setValue( SETTINGS_POSITION, pos() );
         settings.setValue( SETTINGS_SIZE, size() );
     }
+    settings.setValue(SETTINGS_SEARCH_STRING,ui->lineEdit_3->text());
     settings.setValue(SETTINGS_SEARCH_STRING,ui->lineEdit_2->text());
     if(trayicon!=NULL){
         delete trayicon;
