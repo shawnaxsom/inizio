@@ -192,6 +192,14 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(dueshortcut,SIGNAL(activated()),this,SLOT(showDueDialog()));
 
     if(settings.value(SETTINGS_THRESHOLD).toBool()){
+        auto thresholdTodayShortcut = new QShortcut(QKeySequence(tr(",")),ui->tableView);
+        thresholdTodayShortcut->setContext(Qt::WidgetShortcut);
+        QObject::connect(thresholdTodayShortcut,SIGNAL(activated()),this,SLOT(setThresholdToToday()));
+
+        auto thresholdTomorrowShortcut = new QShortcut(QKeySequence(tr(".")),ui->tableView);
+        thresholdTomorrowShortcut->setContext(Qt::WidgetShortcut);
+        QObject::connect(thresholdTomorrowShortcut,SIGNAL(activated()),this,SLOT(setThresholdToTomorrow()));
+
         auto thresholdshortcut = new QShortcut(QKeySequence(tr("t")),ui->tableView);
         thresholdshortcut->setContext(Qt::WidgetShortcut);
         QObject::connect(thresholdshortcut,SIGNAL(activated()),this,SLOT(showThresholdDialog()));
@@ -970,6 +978,18 @@ void MainWindow::showRemovalDialog()
     }
 }
 
+void MainWindow::setThresholdToToday()
+{
+    saveCurrentIndex();
+    setThresholdForSelected("0d");
+}
+
+void MainWindow::setThresholdToTomorrow()
+{
+    saveCurrentIndex();
+    setThresholdForSelected("1d");
+}
+
 void MainWindow::showThresholdDialog()
 {
     saveCurrentIndex();
@@ -980,6 +1000,28 @@ void MainWindow::showDueDialog()
 {
     saveCurrentIndex();
     showDateDialog("Due", "due:", "(due:[\\d-]+)");
+}
+
+void MainWindow::setThresholdForSelected(QString threshold)
+{
+    QRegularExpression dateRegex("(t:[\\d-]+)");
+    forEachSelection([=](QModelIndex index, QString data) {
+        QRegularExpressionMatch m = dateRegex.match(data);
+        if(m.hasMatch()) {
+            if (threshold == "t:") {
+                data = data.replace(" " + m.captured(1), "t:" + threshold);
+            } else {
+                data = data.replace(m.captured(1), "t:" + threshold);
+            }
+        } else {
+            data.append(" t:");
+            data.append(threshold);
+        }
+
+        model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
+    }, [=]() {
+        model->endReset();
+    });
 }
 
 void MainWindow::showDateDialog(QString typeName, QString prefix, QString dateRegexString)
@@ -1007,23 +1049,7 @@ void MainWindow::showDateDialog(QString typeName, QString prefix, QString dateRe
     if (ret) {
         QString text = prefix + dialog->textValue();
 
-        forEachSelection([=](QModelIndex index, QString data) {
-            QRegularExpressionMatch m = dateRegex.match(data);
-            if(m.hasMatch()) {
-                if (text == prefix) {
-                    data = data.replace(" " + m.captured(1), "");
-                } else {
-                    data = data.replace(m.captured(1), text);
-                }
-            } else {
-                data.append(" ");
-                data.append(text);
-            }
-
-            model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
-        }, [=]() {
-            model->endReset();
-        });
+        setThresholdForSelected(text);
     }
 }
 

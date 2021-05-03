@@ -89,6 +89,9 @@ private slots:
 
     void forEachSelection(std::function<void(QModelIndex, QString)> func, std::function<void()> callback);
 
+    void setThresholdToToday();
+    void setThresholdToTomorrow();
+    void setThresholdForSelected(QString threshold);
     void showDateDialog(QString typeName, QString prefix, QString dateRegexString);
     void showDueDialog();
     void showThresholdDialog();
