@@ -43,6 +43,7 @@
 #define SETTINGS_SHOW_DATES "show_dates"
 #define SETTINGS_DELETED_FILE "deleted_file"
 #define SETTINGS_SEARCH_STRING "search_string"
+#define SETTINGS_CONTEXT_STRING "context_string"
 #define SETTINGS_THRESHOLD "threshold"
 #define SETTINGS_THRESHOLD_LABELS "threshold_labels"
 #define SETTINGS_THRESHOLD_INACTIVE "threshold_inactive"

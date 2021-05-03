@@ -100,6 +100,7 @@ MainWindow::MainWindow(QWidget *parent) :
         showMaximized();
 
     ui->lineEdit_2->setText(settings.value(SETTINGS_SEARCH_STRING,DEFAULT_SEARCH_STRING).toString());
+    ui->lineEdit_3->setText(settings.value(SETTINGS_CONTEXT_STRING,"").toString());
 
     // Check that we have an UUID for this application (used for undo for example)
     if(!settings.contains(SETTINGS_UUID)){
@@ -747,8 +748,8 @@ void MainWindow::cleanup(){
         settings.setValue( SETTINGS_POSITION, pos() );
         settings.setValue( SETTINGS_SIZE, size() );
     }
-    settings.setValue(SETTINGS_SEARCH_STRING,ui->lineEdit_3->text());
     settings.setValue(SETTINGS_SEARCH_STRING,ui->lineEdit_2->text());
+    settings.setValue(SETTINGS_CONTEXT_STRING,ui->lineEdit_3->text());
     if(trayicon!=NULL){
         delete trayicon;
         trayicon = NULL;

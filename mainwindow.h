@@ -44,9 +44,9 @@ protected:
     todotxt *todo;
 
 private slots:
-    void on_lineEdit_3_textEdited(const QString &arg1);
-
     void on_lineEdit_2_textEdited(const QString &arg1);
+
+    void on_lineEdit_3_textEdited(const QString &arg1);
 
     void on_actionSettings_triggered();
 
@@ -100,9 +100,9 @@ private slots:
 
     void on_btn_Alphabetical_toggled(bool checked);
 
-    void on_lineEdit_3_returnPressed();
-
     void on_lineEdit_2_returnPressed();
+
+    void on_lineEdit_3_returnPressed();
 
     void on_hotkey();
 
