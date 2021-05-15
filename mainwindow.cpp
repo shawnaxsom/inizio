@@ -99,8 +99,10 @@ MainWindow::MainWindow(QWidget *parent) :
     if ( settings.value( SETTINGS_MAXIMIZED, isMaximized() ).toBool() )
         showMaximized();
 
-    ui->lineEdit_2->setText(settings.value(SETTINGS_SEARCH_STRING,DEFAULT_SEARCH_STRING).toString());
-    ui->lineEdit_3->setText(settings.value(SETTINGS_CONTEXT_STRING,"").toString());
+    ui->lineEdit_2->setText(settings.value(SETTINGS_SEARCH_STRING, DEFAULT_SEARCH_STRING).toString());
+    ui->lineEdit_3->setText(settings.value(SETTINGS_CONTEXT_STRING, "").toString());
+    ui->lineEdit_4->setText(settings.value(SETTINGS_DEFAULT_TEXT_STRING, "(B)").toString());
+    ui->lineEdit_4->setMaximumWidth(100);
 
     // Check that we have an UUID for this application (used for undo for example)
     if(!settings.contains(SETTINGS_UUID)){
@@ -609,8 +611,19 @@ void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
 
 void MainWindow::on_pushButton_clicked()
 {
-    // Adding a new value into the model
-   QString txt = ui->lineEdit->text();
+    QRegularExpression dateRegex("([(][A-Z][)])");
+    QRegularExpressionMatch m_lineEdit = dateRegex.match(ui->lineEdit->text());
+    QRegularExpressionMatch m_lineEdit_4 = dateRegex.match(ui->lineEdit_4->text());
+    QString txt;
+    if (
+        m_lineEdit.hasMatch()
+        && m_lineEdit_4.hasMatch()
+    ) {
+        // Adding a new value into the model
+        txt = ui->lineEdit_4->text().replace(m_lineEdit_4.captured(1), "") + " " + ui->lineEdit->text();
+    } else {
+        txt = ui->lineEdit_4->text() + " " + ui->lineEdit->text();
+    }
    addTodo(txt);
    ui->lineEdit->clear();
 }
@@ -750,6 +763,7 @@ void MainWindow::cleanup(){
     }
     settings.setValue(SETTINGS_SEARCH_STRING,ui->lineEdit_2->text());
     settings.setValue(SETTINGS_CONTEXT_STRING,ui->lineEdit_3->text());
+    settings.setValue(SETTINGS_DEFAULT_TEXT_STRING,ui->lineEdit_4->text());
     if(trayicon!=NULL){
         delete trayicon;
         trayicon = NULL;
@@ -1005,7 +1019,7 @@ void MainWindow::showDueDialog()
 
 void MainWindow::setThresholdForSelected(QString threshold)
 {
-    QRegularExpression dateRegex("(t:[\\d-]+)");
+    QRegularExpression dateRegex("^(t:[\\d-]+)");
     forEachSelection([=](QModelIndex index, QString data) {
         QRegularExpressionMatch m = dateRegex.match(data);
         if(m.hasMatch()) {
