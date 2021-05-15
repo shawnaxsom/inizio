@@ -611,6 +611,11 @@ void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
 
 void MainWindow::on_pushButton_clicked()
 {
+    if (ui->lineEdit->text() == "") {
+        MainWindow::on_lineEdit_2_returnPressed();
+        return;
+    }
+
     QRegularExpression dateRegex("([(][A-Z][)])");
     QRegularExpressionMatch m_lineEdit = dateRegex.match(ui->lineEdit->text());
     QRegularExpressionMatch m_lineEdit_4 = dateRegex.match(ui->lineEdit_4->text());
