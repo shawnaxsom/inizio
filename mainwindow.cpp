@@ -1,3 +1,7 @@
+#include <map>
+#include <iostream>
+#include <sstream>
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -102,7 +106,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lineEdit_2->setText(settings.value(SETTINGS_SEARCH_STRING, DEFAULT_SEARCH_STRING).toString());
     ui->lineEdit_3->setText(settings.value(SETTINGS_CONTEXT_STRING, "").toString());
     ui->lineEdit_4->setText(settings.value(SETTINGS_DEFAULT_TEXT_STRING, "(B)").toString());
-    ui->lineEdit_4->setMaximumWidth(100);
+    ui->lineEdit_4->setMaximumWidth(150);
 
     // Check that we have an UUID for this application (used for undo for example)
     if(!settings.contains(SETTINGS_UUID)){
@@ -262,7 +266,7 @@ MainWindow::MainWindow(QWidget *parent) :
     updateSearchResults(); // Since we may have set a value in the search window
 
     /* ui->lv_activetags->hide(); //  Not being used yet */
-    ui->lv_activetags->setMaximumSize(QSize(100, 99999));
+    ui->lv_activetags->setMaximumSize(QSize(150, 99999));
     ui->lv_activetags->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->newVersionView->hide(); // This defaults to not being shown
     ui->cb_showaall->setChecked(settings.value(SETTINGS_SHOW_ALL,DEFAULT_SHOW_ALL).toBool());
@@ -409,22 +413,22 @@ void MainWindow::parse_todotxt(){
     ui->lv_activetags->setModel(listModel);
     int row = listModel->rowCount();
 
-    listModel->insertRows(row, 15);
-    listModel->setData(listModel->index(0), "(A)");
-    listModel->setData(listModel->index(1), "(B)");
-    listModel->setData(listModel->index(2), "(C)");
-    listModel->setData(listModel->index(3), "@now");
-    listModel->setData(listModel->index(4), "@today");
-    listModel->setData(listModel->index(5), "@tonight");
-    listModel->setData(listModel->index(6), "@waiting");
-    listModel->setData(listModel->index(7), "@home");
-    listModel->setData(listModel->index(8), "@work");
-    listModel->setData(listModel->index(9), "@break");
-    listModel->setData(listModel->index(10), "@sideprojects");
-    listModel->setData(listModel->index(11), "@habits");
-    listModel->setData(listModel->index(12), "@learning");
-    listModel->setData(listModel->index(13), "@research");
-    listModel->setData(listModel->index(14), "+background");
+    listModel->insertRows(row, 30);
+    // listModel->setData(listModel->index(0), "(A)");
+    // listModel->setData(listModel->index(1), "(B)");
+    // listModel->setData(listModel->index(2), "(C)");
+    // listModel->setData(listModel->index(3), "@now");
+    // listModel->setData(listModel->index(4), "@today");
+    // listModel->setData(listModel->index(5), "@tonight");
+    // listModel->setData(listModel->index(6), "@waiting");
+    // listModel->setData(listModel->index(7), "@home");
+    // listModel->setData(listModel->index(8), "@work");
+    // listModel->setData(listModel->index(9), "@break");
+    // listModel->setData(listModel->index(10), "@sideprojects");
+    // listModel->setData(listModel->index(11), "@habits");
+    // listModel->setData(listModel->index(12), "@learning");
+    // listModel->setData(listModel->index(13), "@research");
+    // listModel->setData(listModel->index(14), "+background");
 }
 
 void MainWindow::on_lineEdit_2_textEdited(const QString &arg1)
@@ -449,6 +453,26 @@ void MainWindow::on_lineEdit_3_textEdited(const QString &arg1)
     }
 }
 
+QString get_second(pair<QString, int> i) { return i.first + " (" + QString::number(i.second,'f',0) + ")"; }
+
+bool compareInterval(QString i1, QString i2)
+{
+    QRegularExpression priorityRegex("[(]([0-9]+)[)]$");
+    QRegularExpressionMatch m_i1 = priorityRegex.match(i1);
+    QRegularExpressionMatch m_i2 = priorityRegex.match(i2);
+
+    string s1 = m_i1.captured(1).toUtf8().constData();
+    string s2 = m_i2.captured(1).toUtf8().constData();
+    stringstream c1(s1);
+    stringstream c2(s2);
+    int x1 = 0;
+    int x2 = 0;
+    c1 >> x1;
+    c2 >> x2;
+
+    return (x1 > x2);
+}
+
 void MainWindow::updateSearchResults(){
     // Take the text of the format of match1 match2 !match3 and turn it into
     //(?=.*match1)(?=.*match2)(?!.*match3) - all escaped of course
@@ -469,6 +493,43 @@ void MainWindow::updateSearchResults(){
     //qDebug()<<"Setting filter: "<<regexp.pattern();
     proxyModel->setFilterKeyColumn(1);
     updateTitle();
+
+    int rowCount = listModel->rowCount();
+    for(int i=0; i < rowCount; ++i)
+    {
+        listModel->setData(listModel->index(i), "");
+    }
+
+    std::map<QString, int> contexts = {};
+
+    for(int i=0; i < ui->tableView->model()->rowCount(); ++i)
+    {
+        auto index = ui->tableView->model()->index(i, 1);
+        QString rowText = ui->tableView->model()->data(index, Qt::UserRole).toString();
+        QRegularExpression contextsRegex("([@][a-zA-Z0-9]+)");
+
+        QRegularExpressionMatchIterator j = contextsRegex.globalMatch(rowText);
+        while (j.hasNext()) {
+            QRegularExpressionMatch match = j.next();
+            if (match.hasMatch()) {
+                match.captured(0);
+                QString context = match.captured(0);
+                if (
+                    ui->lineEdit_2->text().indexOf(context) == -1
+                    && ui->lineEdit_3->text().indexOf(context) == -1
+                ) {
+                    contexts[QString(context)]++;
+                }
+            }
+        }
+    }
+
+    vector<QString> v( contexts.size() );
+    transform( contexts.begin(), contexts.end(), v.begin(), get_second );
+    sort( v.begin(), v.end(), compareInterval );
+    for (int i=0; i<v.size(); i++) {
+        listModel->setData(listModel->index(i), v[i]);
+    }
 }
 
 void MainWindow::on_lineEdit_3_returnPressed()
@@ -616,9 +677,9 @@ void MainWindow::on_pushButton_clicked()
         return;
     }
 
-    QRegularExpression dateRegex("([(][A-Z][)])");
-    QRegularExpressionMatch m_lineEdit = dateRegex.match(ui->lineEdit->text());
-    QRegularExpressionMatch m_lineEdit_4 = dateRegex.match(ui->lineEdit_4->text());
+    QRegularExpression priorityRegex("([(][A-Z][)])");
+    QRegularExpressionMatch m_lineEdit = priorityRegex.match(ui->lineEdit->text());
+    QRegularExpressionMatch m_lineEdit_4 = priorityRegex.match(ui->lineEdit_4->text());
     QString txt;
     if (
         m_lineEdit.hasMatch()
@@ -1180,6 +1241,10 @@ void MainWindow::on_lv_activetags_clicked(QModelIndex index)
     QString newSearch = "";
 
     QString selectedContext = index.data().toString();
+
+    QRegularExpression priorityRegex("([(][0-9]+[)])$");
+    QRegularExpressionMatch m_selectedContext = priorityRegex.match(selectedContext);
+    selectedContext = selectedContext.replace(m_selectedContext.captured(1), "");
 
     QStringList words = previousSearch.split(QRegularExpression("\\s+"));
     QString regexpstring="(?=^.*$)"; // Seems a negative lookahead can't be first (!?), so this is a workaround
