@@ -413,7 +413,7 @@ void MainWindow::parse_todotxt(){
     ui->lv_activetags->setModel(listModel);
     int row = listModel->rowCount();
 
-    listModel->insertRows(row, 30);
+    listModel->insertRows(row, 1000);
     // listModel->setData(listModel->index(0), "(A)");
     // listModel->setData(listModel->index(1), "(B)");
     // listModel->setData(listModel->index(2), "(C)");
@@ -457,6 +457,20 @@ QString get_second(pair<QString, int> i) { return i.first + " (" + QString::numb
 
 bool compareInterval(QString i1, QString i2)
 {
+    QRegularExpression contextRegex("^[@]");
+    QRegularExpressionMatch m_i1context = contextRegex.match(i1);
+    QRegularExpressionMatch m_i2context = contextRegex.match(i2);
+
+    // Allow for regular words, but sort contexts to the top
+    if (m_i1context.hasMatch() && !m_i2context.hasMatch())
+    {
+        return true;
+    }
+    else if (!m_i1context.hasMatch() && m_i2context.hasMatch())
+    {
+        return false;
+    }
+
     QRegularExpression priorityRegex("[(]([0-9]+)[)]$");
     QRegularExpressionMatch m_i1 = priorityRegex.match(i1);
     QRegularExpressionMatch m_i2 = priorityRegex.match(i2);
@@ -506,7 +520,8 @@ void MainWindow::updateSearchResults(){
     {
         auto index = ui->tableView->model()->index(i, 1);
         QString rowText = ui->tableView->model()->data(index, Qt::UserRole).toString();
-        QRegularExpression contextsRegex("([@][a-zA-Z0-9]+)");
+        // QRegularExpression contextsRegex("([@][a-zA-Z0-9]+)");
+        QRegularExpression contextsRegex("([@a-zA-Z][@a-zA-Z0-9-]+)");
 
         QRegularExpressionMatchIterator j = contextsRegex.globalMatch(rowText);
         while (j.hasNext()) {
