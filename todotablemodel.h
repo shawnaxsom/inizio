@@ -17,17 +17,17 @@ public:
     int columnCount(const QModelIndex &parent) const;
     QVariant data(const QModelIndex &index, int role) const;
     QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-    Qt::ItemFlags flags(const QModelIndex& index) const;
-    bool toggleRow(const QModelIndex & index, bool shouldEndResetModel = true);
-    bool setData(const QModelIndex & index, const QVariant & value, int role);
-    bool setData(const QModelIndex & index, const QVariant & value, int role, bool shouldEndResetModel = true);
+    Qt::ItemFlags flags(const QModelIndex &index) const;
+    bool toggleRow(const QModelIndex &index, bool shouldEndResetModel = true);
+    bool setData(const QModelIndex &index, const QVariant &value, int role);
+    bool setData(const QModelIndex &index, const QVariant &value, int role, bool shouldEndResetModel = true);
     void add(QString text);
-    void remove(QString text);
+    void remove(QString text, bool shouldEndResetModel = true);
     void archive();
     void refresh();
     int count();
     QString getTodoFile();
-    QModelIndexList match(const QModelIndex &start, int role, const QVariant &value, int hits = 1, Qt::MatchFlags flags = Qt::MatchFlags( Qt::MatchStartsWith | Qt::MatchWrap )) const;
+    QModelIndexList match(const QModelIndex &start, int role, const QVariant &value, int hits = 1, Qt::MatchFlags flags = Qt::MatchFlags(Qt::MatchStartsWith | Qt::MatchWrap)) const;
     bool undo();
     bool redo();
     bool undoPossible(); // Say if undo is possible or not
@@ -35,10 +35,9 @@ public:
     void endReset();
 
 signals:
-   //void dataChanged(QModelIndex i1,QModelIndex i2,QVector<int> v); Borde inte behövas. Det finns ju redan
-    
+    //void dataChanged(QModelIndex i1,QModelIndex i2,QVector<int> v); Borde inte behövas. Det finns ju redan
+
 public slots:
-    
 };
 
 #endif // TODOTABLEMODEL_H

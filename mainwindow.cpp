@@ -783,16 +783,20 @@ void MainWindow::on_pushButton_2_clicked()
 
 void MainWindow::deleteSelected()
 {
-    // Remove the selected item
-    QModelIndexList indexes = ui->tableView->selectionModel()->selection().indexes();
-    // Only support for deleting one item at a time
-    if (!indexes.empty())
-    {
-        QModelIndex i = indexes.at(0);
-        QString t = model->data(proxyModel->mapToSource(i), Qt::UserRole).toString(); // User Role is Raw data
-        //QString t=proxyModel->data(i).toString();
-        model->remove(t);
-    }
+    saveCurrentIndex();
+
+    forEachSelection(
+        [=](QModelIndex index, QString data) {
+            QString t = model->data(proxyModel->mapToSource(index), Qt::UserRole).toString(); // User Role is Raw data
+            //QString t=proxyModel->data(i).toString();
+            model->remove(t, false);
+        },
+        [=]() {
+            model->endReset();
+            ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
+            ui->tableView->setFocus(Qt::OtherFocusReason);
+        });
+
     updateTitle();
 }
 
