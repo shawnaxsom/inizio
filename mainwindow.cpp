@@ -36,21 +36,20 @@
 #include <QMessageBox>
 
 QNetworkAccessManager *networkaccessmanager;
-TodoTableModel *model=NULL;
-QStringListModel *listModel=NULL;
+TodoTableModel *model = NULL;
+QStringListModel *listModel = NULL;
 
 QString saved_selection; // Used for selection memory
-int saved_row = -1; // Used for selection memory
-int saved_column = 0; // Used for selection memory
+int saved_row = -1;      // Used for selection memory
+int saved_column = 0;    // Used for selection memory
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
+                                          ui(new Ui::MainWindow)
 {
     todo = new todotxt();
 
     ui->setupUi(this);
-    QString title=this->windowTitle();
+    QString title = this->windowTitle();
 
 #ifdef QT_NO_DEBUG
     QCoreApplication::setOrganizationName("Nerdur");
@@ -65,16 +64,15 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
 
     title.append(VER);
-    baseTitle=title;
+    baseTitle = title;
     this->setWindowTitle(title);
 
-
-
     // Check if we're supposed to have the settings from .ini file or not
-    if(QCoreApplication::arguments().contains("-portable")){
+    if (QCoreApplication::arguments().contains("-portable"))
+    {
         QSettings::setDefaultFormat(QSettings::IniFormat);
-        QSettings::setPath(QSettings::IniFormat,QSettings::UserScope,QDir::currentPath());
-        qDebug()<<"Setting ini file path to: "<<QDir::currentPath()<<Qt::endl;
+        QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, QDir::currentPath());
+        qDebug() << "Setting ini file path to: " << QDir::currentPath() << Qt::endl;
     }
 
     hotkey = new UGlobalHotkeys();
@@ -88,19 +86,21 @@ MainWindow::MainWindow(QWidget *parent) :
     auto miny = rec.topLeft().y();
 
     QSettings settings;
-    restoreGeometry(settings.value( SETTINGS_GEOMETRY, saveGeometry() ).toByteArray());
-    restoreState(settings.value( SETTINGS_SAVESTATE, saveState() ).toByteArray());
+    restoreGeometry(settings.value(SETTINGS_GEOMETRY, saveGeometry()).toByteArray());
+    restoreState(settings.value(SETTINGS_SAVESTATE, saveState()).toByteArray());
     auto p = settings.value(SETTINGS_POSITION, pos()).toPoint();
 
-    if(p.x()>=maxx-100 || p.x()<minx){
-       p.setX(minx); // Set to minx for safety
+    if (p.x() >= maxx - 100 || p.x() < minx)
+    {
+        p.setX(minx); // Set to minx for safety
     }
-    if(p.y()>=maxy-100 || p.y()<miny ){
+    if (p.y() >= maxy - 100 || p.y() < miny)
+    {
         p.setY(miny); // Set to miny for safety
     }
     move(p);
-    resize(settings.value( SETTINGS_SIZE, size() ).toSize());
-    if ( settings.value( SETTINGS_MAXIMIZED, isMaximized() ).toBool() )
+    resize(settings.value(SETTINGS_SIZE, size()).toSize());
+    if (settings.value(SETTINGS_MAXIMIZED, isMaximized()).toBool())
         showMaximized();
 
     ui->lineEdit_2->setText(settings.value(SETTINGS_SEARCH_STRING, DEFAULT_SEARCH_STRING).toString());
@@ -109,25 +109,27 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lineEdit_4->setMaximumWidth(150);
 
     // Check that we have an UUID for this application (used for undo for example)
-    if(!settings.contains(SETTINGS_UUID)){
-        settings.setValue(SETTINGS_UUID,QUuid::createUuid().toString());
+    if (!settings.contains(SETTINGS_UUID))
+    {
+        settings.setValue(SETTINGS_UUID, QUuid::createUuid().toString());
     }
 
     // Fix some font-awesome stuff
-    QtAwesome* awesome = new QtAwesome(qApp);
-    awesome->initFontAwesome();     // This line is important as it loads the font and initializes the named icon map
-    awesome->setDefaultOption("scale-factor",0.9);
-    ui->btn_Alphabetical->setIcon(awesome->icon( fa::sortalphaasc ));
-    ui->pushButton_3->setIcon(awesome->icon( fa::signout ));
-    ui->pushButton_4->setIcon(awesome->icon( fa::refresh ));
-    ui->pushButton->setIcon(awesome->icon( fa::plus ));
-    ui->pushButton_2->setIcon(awesome->icon( fa::minus ));
+    QtAwesome *awesome = new QtAwesome(qApp);
+    awesome->initFontAwesome(); // This line is important as it loads the font and initializes the named icon map
+    awesome->setDefaultOption("scale-factor", 0.9);
+    ui->btn_Alphabetical->setIcon(awesome->icon(fa::sortalphaasc));
+    ui->pushButton_3->setIcon(awesome->icon(fa::signout));
+    ui->pushButton_4->setIcon(awesome->icon(fa::refresh));
+    ui->pushButton->setIcon(awesome->icon(fa::plus));
+    ui->pushButton_2->setIcon(awesome->icon(fa::minus));
     ui->context_lock->setIcon(awesome->icon(fa::lock));
     ui->pb_closeVersionBar->setIcon(awesome->icon(fa::times));
 
     // Set some defaults if they dont exist
-    if(!settings.contains(SETTINGS_LIVE_SEARCH)){
-        settings.setValue(SETTINGS_LIVE_SEARCH,DEFAULT_LIVE_SEARCH);
+    if (!settings.contains(SETTINGS_LIVE_SEARCH))
+    {
+        settings.setValue(SETTINGS_LIVE_SEARCH, DEFAULT_LIVE_SEARCH);
     }
 
     // Started. Lets open the todo.txt file, parse it and show it.
@@ -135,114 +137,112 @@ MainWindow::MainWindow(QWidget *parent) :
     setFileWatch();
     networkaccessmanager = new QNetworkAccessManager(this);
 
-
     // Set up shortcuts . Mac translates the Ctrl -> Cmd
     // http://doc.qt.io/qt-5/qshortcut.html
-    auto editshortcut = new QShortcut(QKeySequence(tr("Ctrl+n")),this);
-    QObject::connect(editshortcut,SIGNAL(activated()),ui->lineEdit,SLOT(setFocus()));
+    auto editshortcut = new QShortcut(QKeySequence(tr("Ctrl+n")), this);
+    QObject::connect(editshortcut, SIGNAL(activated()), ui->lineEdit, SLOT(setFocus()));
 
+    auto findshortcut = new QShortcut(QKeySequence(tr("Ctrl+f")), this);
+    QObject::connect(findshortcut, SIGNAL(activated()), ui->lineEdit_2, SLOT(setFocus()));
 
-    auto findshortcut = new QShortcut(QKeySequence(tr("Ctrl+f")),this);
-    QObject::connect(findshortcut,SIGNAL(activated()),ui->lineEdit_2,SLOT(setFocus()));
-
-    auto clearshortcut = new QShortcut(QKeySequence(tr("Esc")),ui->lineEdit_2);
+    auto clearshortcut = new QShortcut(QKeySequence(tr("Esc")), ui->lineEdit_2);
     clearshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(clearshortcut,SIGNAL(activated()),this,SLOT(clearSearch()));
+    QObject::connect(clearshortcut, SIGNAL(activated()), this, SLOT(clearSearch()));
 
-    auto clearshortcut2 = new QShortcut(QKeySequence(tr("Esc")),ui->tableView);
+    auto clearshortcut2 = new QShortcut(QKeySequence(tr("Esc")), ui->tableView);
     clearshortcut2->setContext(Qt::WidgetShortcut);
-    QObject::connect(clearshortcut2,SIGNAL(activated()),this,SLOT(clearSearch()));
+    QObject::connect(clearshortcut2, SIGNAL(activated()), this, SLOT(clearSearch()));
 
-
-    auto launchshortcut = new QShortcut(QKeySequence(tr("o")),ui->tableView);
+    auto launchshortcut = new QShortcut(QKeySequence(tr("o")), ui->tableView);
     launchshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(launchshortcut,SIGNAL(activated()),this,SLOT(launchUrl()));
+    QObject::connect(launchshortcut, SIGNAL(activated()), this, SLOT(launchUrl()));
 
-    auto completeTasksShortcut = new QShortcut(QKeySequence(Qt::Key_Space),ui->tableView);
+    auto completeTasksShortcut = new QShortcut(QKeySequence(Qt::Key_Space), ui->tableView);
     completeTasksShortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(completeTasksShortcut,SIGNAL(activated()),this,SLOT(completeTasks()));
+    QObject::connect(completeTasksShortcut, SIGNAL(activated()), this, SLOT(completeTasks()));
 
-    auto upshortcut = new QShortcut(QKeySequence(tr("k")),ui->tableView);
+    auto upshortcut = new QShortcut(QKeySequence(tr("k")), ui->tableView);
     upshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(upshortcut,SIGNAL(activated()),this,SLOT(up()));
+    QObject::connect(upshortcut, SIGNAL(activated()), this, SLOT(up()));
 
-    auto shiftupshortcut = new QShortcut(QKeySequence(tr("Shift+k")),ui->tableView);
+    auto shiftupshortcut = new QShortcut(QKeySequence(tr("Shift+k")), ui->tableView);
     shiftupshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(shiftupshortcut,SIGNAL(activated()),this,SLOT(shiftUp()));
+    QObject::connect(shiftupshortcut, SIGNAL(activated()), this, SLOT(shiftUp()));
 
-    auto downshortcut = new QShortcut(QKeySequence(tr("j")),ui->tableView);
+    auto downshortcut = new QShortcut(QKeySequence(tr("j")), ui->tableView);
     downshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(downshortcut,SIGNAL(activated()),this,SLOT(down()));
+    QObject::connect(downshortcut, SIGNAL(activated()), this, SLOT(down()));
 
-    auto shiftdownshortcut = new QShortcut(QKeySequence(tr("Shift+j")),ui->tableView);
+    auto shiftdownshortcut = new QShortcut(QKeySequence(tr("Shift+j")), ui->tableView);
     shiftdownshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(shiftdownshortcut,SIGNAL(activated()),this,SLOT(shiftDown()));
+    QObject::connect(shiftdownshortcut, SIGNAL(activated()), this, SLOT(shiftDown()));
 
-    auto leftshortcut = new QShortcut(QKeySequence(tr("h")),ui->tableView);
+    auto leftshortcut = new QShortcut(QKeySequence(tr("h")), ui->tableView);
     leftshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(leftshortcut,SIGNAL(activated()),this,SLOT(left()));
+    QObject::connect(leftshortcut, SIGNAL(activated()), this, SLOT(left()));
 
-    auto rightshortcut = new QShortcut(QKeySequence(tr("l")),ui->tableView);
+    auto rightshortcut = new QShortcut(QKeySequence(tr("l")), ui->tableView);
     rightshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(rightshortcut,SIGNAL(activated()),this,SLOT(right()));
+    QObject::connect(rightshortcut, SIGNAL(activated()), this, SLOT(right()));
 
-    auto appendshortcut = new QShortcut(QKeySequence(tr("a")),ui->tableView);
+    auto appendshortcut = new QShortcut(QKeySequence(tr("a")), ui->tableView);
     appendshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(appendshortcut,SIGNAL(activated()),this,SLOT(showAppendDialog()));
+    QObject::connect(appendshortcut, SIGNAL(activated()), this, SLOT(showAppendDialog()));
 
-    auto removalshortcut = new QShortcut(QKeySequence(tr("r")),ui->tableView);
+    auto removalshortcut = new QShortcut(QKeySequence(tr("r")), ui->tableView);
     removalshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(removalshortcut,SIGNAL(activated()),this,SLOT(showRemovalDialog()));
+    QObject::connect(removalshortcut, SIGNAL(activated()), this, SLOT(showRemovalDialog()));
 
-    auto dueshortcut = new QShortcut(QKeySequence(tr("d")),ui->tableView);
+    auto dueshortcut = new QShortcut(QKeySequence(tr("d")), ui->tableView);
     dueshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(dueshortcut,SIGNAL(activated()),this,SLOT(showDueDialog()));
+    QObject::connect(dueshortcut, SIGNAL(activated()), this, SLOT(showDueDialog()));
 
-    if(settings.value(SETTINGS_THRESHOLD).toBool()){
-        auto thresholdTodayShortcut = new QShortcut(QKeySequence(tr(",")),ui->tableView);
+    if (settings.value(SETTINGS_THRESHOLD).toBool())
+    {
+        auto thresholdTodayShortcut = new QShortcut(QKeySequence(tr(",")), ui->tableView);
         thresholdTodayShortcut->setContext(Qt::WidgetShortcut);
-        QObject::connect(thresholdTodayShortcut,SIGNAL(activated()),this,SLOT(setThresholdToToday()));
+        QObject::connect(thresholdTodayShortcut, SIGNAL(activated()), this, SLOT(setThresholdToToday()));
 
-        auto thresholdTomorrowShortcut = new QShortcut(QKeySequence(tr(".")),ui->tableView);
+        auto thresholdTomorrowShortcut = new QShortcut(QKeySequence(tr(".")), ui->tableView);
         thresholdTomorrowShortcut->setContext(Qt::WidgetShortcut);
-        QObject::connect(thresholdTomorrowShortcut,SIGNAL(activated()),this,SLOT(setThresholdToTomorrow()));
+        QObject::connect(thresholdTomorrowShortcut, SIGNAL(activated()), this, SLOT(setThresholdToTomorrow()));
 
-        auto thresholdshortcut = new QShortcut(QKeySequence(tr("t")),ui->tableView);
+        auto thresholdshortcut = new QShortcut(QKeySequence(tr("t")), ui->tableView);
         thresholdshortcut->setContext(Qt::WidgetShortcut);
-        QObject::connect(thresholdshortcut,SIGNAL(activated()),this,SLOT(showThresholdDialog()));
+        QObject::connect(thresholdshortcut, SIGNAL(activated()), this, SLOT(showThresholdDialog()));
     }
 
-    auto pageupshortcut = new QShortcut(QKeySequence(tr("Ctrl+u")),ui->tableView);
+    auto pageupshortcut = new QShortcut(QKeySequence(tr("Ctrl+u")), ui->tableView);
     pageupshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(pageupshortcut,SIGNAL(activated()),this,SLOT(pageUp()));
+    QObject::connect(pageupshortcut, SIGNAL(activated()), this, SLOT(pageUp()));
 
-    auto pagedownshortcut = new QShortcut(QKeySequence(tr("Ctrl+d")),ui->tableView);
+    auto pagedownshortcut = new QShortcut(QKeySequence(tr("Ctrl+d")), ui->tableView);
     pagedownshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(pagedownshortcut,SIGNAL(activated()),this,SLOT(pageDown()));
+    QObject::connect(pagedownshortcut, SIGNAL(activated()), this, SLOT(pageDown()));
 
-    auto deleteshortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Backspace),ui->tableView);
+    auto deleteshortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Backspace), ui->tableView);
     deleteshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(deleteshortcut,SIGNAL(activated()),this,SLOT(deleteSelected()));
+    QObject::connect(deleteshortcut, SIGNAL(activated()), this, SLOT(deleteSelected()));
 
-    auto increasepriorityshortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Up),ui->tableView);
+    auto increasepriorityshortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Up), ui->tableView);
     increasepriorityshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(increasepriorityshortcut,SIGNAL(activated()),this,SLOT(increasePriority()));
+    QObject::connect(increasepriorityshortcut, SIGNAL(activated()), this, SLOT(increasePriority()));
 
-    auto increasepriorityshortcut2 = new QShortcut(QKeySequence(tr("Ctrl+k")),ui->tableView);
+    auto increasepriorityshortcut2 = new QShortcut(QKeySequence(tr("Ctrl+k")), ui->tableView);
     increasepriorityshortcut2->setContext(Qt::WidgetShortcut);
-    QObject::connect(increasepriorityshortcut2,SIGNAL(activated()),this,SLOT(increasePriority()));
+    QObject::connect(increasepriorityshortcut2, SIGNAL(activated()), this, SLOT(increasePriority()));
 
-    auto decreasepriorityshortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Down),ui->tableView);
+    auto decreasepriorityshortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Down), ui->tableView);
     decreasepriorityshortcut->setContext(Qt::WidgetShortcut);
-    QObject::connect(decreasepriorityshortcut,SIGNAL(activated()),this,SLOT(decreasePriority()));
+    QObject::connect(decreasepriorityshortcut, SIGNAL(activated()), this, SLOT(decreasePriority()));
 
-    auto decreasepriorityshortcut2 = new QShortcut(QKeySequence(tr("Ctrl+j")),ui->tableView);
+    auto decreasepriorityshortcut2 = new QShortcut(QKeySequence(tr("Ctrl+j")), ui->tableView);
     decreasepriorityshortcut2->setContext(Qt::WidgetShortcut);
-    QObject::connect(decreasepriorityshortcut2,SIGNAL(activated()),this,SLOT(decreasePriority()));
+    QObject::connect(decreasepriorityshortcut2, SIGNAL(activated()), this, SLOT(decreasePriority()));
 
     //auto contextshortcut = new QShortcut(QKeySequence(tr("Ctrl+l")),this);
     //QObject::connect(contextshortcut,SIGNAL(activated()),ui->context_lock,SLOT(setChecked(!(ui->context_lock->isChecked()))));
-    QObject::connect(model,SIGNAL(dataChanged (const QModelIndex , const QModelIndex )),this,SLOT(dataInModelChanged(QModelIndex,QModelIndex)));
+    QObject::connect(model, SIGNAL(dataChanged(const QModelIndex, const QModelIndex)), this, SLOT(dataInModelChanged(QModelIndex, QModelIndex)));
 
     // Resize tableView row height on first load, and then again when resizing window
     QTimer::singleShot(1, ui->tableView, SLOT(resizeRowsToContents()));
@@ -259,61 +259,61 @@ MainWindow::MainWindow(QWidget *parent) :
     auto redoshortcut = new QShortcut(QKeySequence(tr("Ctrl+r")),this);
     QObject::connect(redoshortcut,SIGNAL(activated()),this,SLOT(redo()));*/
 
-
     // Do this late as it triggers action using data
     ui->btn_Alphabetical->setChecked(settings.value(SETTINGS_SORT_ALPHA).toBool());
-    ui->context_lock->setChecked(settings.value(SETTINGS_CONTEXT_LOCK,DEFAULT_CONTEXT_LOCK).toBool());
+    ui->context_lock->setChecked(settings.value(SETTINGS_CONTEXT_LOCK, DEFAULT_CONTEXT_LOCK).toBool());
     updateSearchResults(); // Since we may have set a value in the search window
 
     /* ui->lv_activetags->hide(); //  Not being used yet */
     ui->lv_activetags->setMaximumSize(QSize(150, 99999));
     ui->lv_activetags->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->newVersionView->hide(); // This defaults to not being shown
-    ui->cb_showaall->setChecked(settings.value(SETTINGS_SHOW_ALL,DEFAULT_SHOW_ALL).toBool());
-    ui->cb_threshold_inactive->setChecked(settings.value(SETTINGS_THRESHOLD_INACTIVE,DEFAULT_THRESHOLD_INACTIVE).toBool());
+    ui->cb_showaall->setChecked(settings.value(SETTINGS_SHOW_ALL, DEFAULT_SHOW_ALL).toBool());
+    ui->cb_threshold_inactive->setChecked(settings.value(SETTINGS_THRESHOLD_INACTIVE, DEFAULT_THRESHOLD_INACTIVE).toBool());
 
     setTray();
     setFontSize();
 
     // Version check
-    if(settings.value(SETTINGS_CHECK_UPDATES,DEFAULT_CHECK_UPDATES).toBool()){
-        QString last_check = settings.value(SETTINGS_LAST_UPDATE_CHECK,"").toString();
-        if(last_check.isEmpty()){
+    if (settings.value(SETTINGS_CHECK_UPDATES, DEFAULT_CHECK_UPDATES).toBool())
+    {
+        QString last_check = settings.value(SETTINGS_LAST_UPDATE_CHECK, "").toString();
+        if (last_check.isEmpty())
+        {
             // We set this up so that first check will be later, giving users ample time to turn off the feature.
             last_check = QDate::currentDate().toString("yyyy-MM-dd");
-            settings.setValue(SETTINGS_LAST_UPDATE_CHECK,last_check);
-
+            settings.setValue(SETTINGS_LAST_UPDATE_CHECK, last_check);
         }
-        QDate lastCheck = QDate::fromString(last_check,"yyyy-MM-dd");
+        QDate lastCheck = QDate::fromString(last_check, "yyyy-MM-dd");
         QDate nextCheck = lastCheck.addDays(7);
 
-        qDebug()<<"Last update check date: "<<last_check<<" and next is "<<nextCheck.toString("yyyy-MM-dd")<<Qt::endl;
+        qDebug() << "Last update check date: " << last_check << " and next is " << nextCheck.toString("yyyy-MM-dd") << Qt::endl;
         int daysToNextcheck = QDate::currentDate().daysTo(nextCheck);
-        if(daysToNextcheck<0){
+        if (daysToNextcheck < 0)
+        {
             QString URL = VERSION_URL;
             requestPage(URL);
         }
     }
-
 }
 
 // This method is for making sure we're re-selecting the item that has been edited
-void MainWindow::dataInModelChanged(QModelIndex i1,QModelIndex i2){
+void MainWindow::dataInModelChanged(QModelIndex i1, QModelIndex i2)
+{
     Q_UNUSED(i2);
     //qDebug()<<"Data in Model changed emitted:"<<i1.data(Qt::UserRole)<<"::"<<i2.data(Qt::UserRole)<<endl;
     //qDebug()<<"Changed:R="<<i1.row()<<":C="<<i1.column()<<endl;
     saved_selection = i1.data(Qt::UserRole).toString();
     QSettings settings;
-    if(settings.value(SETTINGS_AUTOREFRESH).toBool()==false) {
+    if (settings.value(SETTINGS_AUTOREFRESH).toBool() == false)
+    {
         // Reselect the previously selected line
         // Avoid with autorefresh, since that will also attempt this after the file reloads
         // TODO: settings seem cached, the app has to restart for this to apply if the user toggles the setting.
         resetTableSelection();
     }
     updateTitle();
-
 }
-
 
 MainWindow::~MainWindow()
 {
@@ -325,45 +325,45 @@ MainWindow::~MainWindow()
 }
 
 // proxyModel is a filtered view of the UI model
-QSortFilterProxyModel *proxyModel=NULL;
+QSortFilterProxyModel *proxyModel = NULL;
 
 QFileSystemWatcher *watcher;
 
-void MainWindow::updateTitle(){
+void MainWindow::updateTitle()
+{
     // The title is initialized to the name and version number at start and that is stored in baseTitle
 
-    if(proxyModel != NULL){
+    if (proxyModel != NULL)
+    {
         int visible = proxyModel->rowCount();
         int total = proxyModel->sourceModel()->rowCount();
 
-        this->setWindowTitle(baseTitle+" ("+QString::number(visible)+"/"+QString::number(total)+")");
+        this->setWindowTitle(baseTitle + " (" + QString::number(visible) + "/" + QString::number(total) + ")");
     }
 
     // Check the undo and redo meny items
     ui->actionUndo->setEnabled(model->undoPossible());
     ui->actionRedo->setEnabled(model->redoPossible());
-
 }
-
 
 // A simple delay function I pulled of the 'net.. Need to delay reading a file a little bit.. A second seems to be enough
 // really don't like this though as I have no idea of knowing when a second is enough.
 // Having more than one second will impact usability of the application as it changes the focus.
 void delay()
 {
-    QTime dieTime= QTime::currentTime().addSecs(1);
-    while( QTime::currentTime() < dieTime )
-    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+    QTime dieTime = QTime::currentTime().addSecs(1);
+    while (QTime::currentTime() < dieTime)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 }
 
-
-
-void MainWindow::fileModified(const QString &str){
+void MainWindow::fileModified(const QString &str)
+{
     Q_UNUSED(str);
     //qDebug()<<"MainWindow::fileModified  "<<watcher->files()<<" --- "<<str;
     saveTableSelection();
     model->refresh();
-    if(model->count()==0){
+    if (model->count() == 0)
+    {
         // This sometimes happens when the file is being updated. We have gotten the signal a bit soon so the file is still empty. Wait and try again
         delay();
         model->refresh();
@@ -373,17 +373,20 @@ void MainWindow::fileModified(const QString &str){
     setFileWatch();
 }
 
-void MainWindow::clearFileWatch(){
-    if(watcher != NULL){
+void MainWindow::clearFileWatch()
+{
+    if (watcher != NULL)
+    {
         delete watcher;
         watcher = NULL;
     }
 }
 
-void MainWindow::setFileWatch(){
+void MainWindow::setFileWatch()
+{
     QSettings settings;
-    if(settings.value(SETTINGS_AUTOREFRESH).toBool()==false)
-           return;
+    if (settings.value(SETTINGS_AUTOREFRESH).toBool() == false)
+        return;
 
     clearFileWatch();
 
@@ -394,9 +397,8 @@ void MainWindow::setFileWatch(){
     QObject::connect(watcher, SIGNAL(fileChanged(QString)), this, SLOT(fileModified(QString)));
 }
 
-
-
-void MainWindow::parse_todotxt(){
+void MainWindow::parse_todotxt()
+{
 
     model = new TodoTableModel(this);
     proxyModel = new QSortFilterProxyModel(this);
@@ -405,7 +407,7 @@ void MainWindow::parse_todotxt(){
     ui->tableView->setModel(proxyModel);
     //ui->tableView->resizeColumnsToContents();
     //ui->tableView->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
-    ui->tableView->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch);
+    ui->tableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
     ui->tableView->resizeColumnToContents(0); // Checkboxes kept small
     ui->tableView->setWordWrap(true);
 
@@ -437,7 +439,8 @@ void MainWindow::on_lineEdit_2_textEdited(const QString &arg1)
     QSettings settings;
 
     bool liveUpdate = settings.value(SETTINGS_LIVE_SEARCH).toBool();
-    if(!ui->cb_showaall->checkState() && liveUpdate){
+    if (!ui->cb_showaall->checkState() && liveUpdate)
+    {
         updateSearchResults();
     }
 }
@@ -448,12 +451,13 @@ void MainWindow::on_lineEdit_3_textEdited(const QString &arg1)
     QSettings settings;
 
     bool liveUpdate = settings.value(SETTINGS_LIVE_SEARCH).toBool();
-    if(!ui->cb_showaall->checkState() && liveUpdate){
+    if (!ui->cb_showaall->checkState() && liveUpdate)
+    {
         updateSearchResults();
     }
 }
 
-QString get_second(pair<QString, int> i) { return i.first + " (" + QString::number(i.second,'f',0) + ")"; }
+QString get_second(pair<QString, int> i) { return i.first + " (" + QString::number(i.second, 'f', 0) + ")"; }
 
 bool compareInterval(QString i1, QString i2)
 {
@@ -487,36 +491,40 @@ bool compareInterval(QString i1, QString i2)
     return (x1 > x2);
 }
 
-void MainWindow::updateSearchResults(){
+void MainWindow::updateSearchResults()
+{
     // Take the text of the format of match1 match2 !match3 and turn it into
     //(?=.*match1)(?=.*match2)(?!.*match3) - all escaped of course
     QString fullPhrase = ui->lineEdit_3->text() + " " + ui->lineEdit_2->text();
     QStringList words = fullPhrase.simplified().split(QRegularExpression("\\s+"));
-    QString regexpstring="(?=^.*$)"; // Seems a negative lookahead can't be first (!?), so this is a workaround
-    for(QString word:words){
+    QString regexpstring = "(?=^.*$)"; // Seems a negative lookahead can't be first (!?), so this is a workaround
+    for (QString word : words)
+    {
         QString start = "(?=^.*";
-        if(word.length()>0 && word.at(0)=='!'){
+        if (word.length() > 0 && word.at(0) == '!')
+        {
             start = "(?!^.*";
-            word = word.remove(0,1);
+            word = word.remove(0, 1);
         }
-        if(word.length()==0) break;
-        regexpstring += start+QRegExp::escape(word)+".*$)";
+        if (word.length() == 0)
+            break;
+        regexpstring += start + QRegExp::escape(word) + ".*$)";
     }
-    QRegExp regexp(regexpstring,Qt::CaseInsensitive);
+    QRegExp regexp(regexpstring, Qt::CaseInsensitive);
     proxyModel->setFilterRegExp(regexp);
     //qDebug()<<"Setting filter: "<<regexp.pattern();
     proxyModel->setFilterKeyColumn(1);
     updateTitle();
 
     int rowCount = listModel->rowCount();
-    for(int i=0; i < rowCount; ++i)
+    for (int i = 0; i < rowCount; ++i)
     {
         listModel->setData(listModel->index(i), "");
     }
 
     std::map<QString, int> contexts = {};
 
-    for(int i=0; i < ui->tableView->model()->rowCount(); ++i)
+    for (int i = 0; i < ui->tableView->model()->rowCount(); ++i)
     {
         auto index = ui->tableView->model()->index(i, 1);
         QString rowText = ui->tableView->model()->data(index, Qt::UserRole).toString();
@@ -524,25 +532,27 @@ void MainWindow::updateSearchResults(){
         QRegularExpression contextsRegex("([@a-zA-Z][@a-zA-Z0-9-]+)");
 
         QRegularExpressionMatchIterator j = contextsRegex.globalMatch(rowText);
-        while (j.hasNext()) {
+        while (j.hasNext())
+        {
             QRegularExpressionMatch match = j.next();
-            if (match.hasMatch()) {
+            if (match.hasMatch())
+            {
                 match.captured(0);
                 QString context = match.captured(0);
                 if (
-                    ui->lineEdit_2->text().indexOf(context) == -1
-                    && ui->lineEdit_3->text().indexOf(context) == -1
-                ) {
+                    ui->lineEdit_2->text().indexOf(context) == -1 && ui->lineEdit_3->text().indexOf(context) == -1)
+                {
                     contexts[QString(context)]++;
                 }
             }
         }
     }
 
-    vector<QString> v( contexts.size() );
-    transform( contexts.begin(), contexts.end(), v.begin(), get_second );
-    sort( v.begin(), v.end(), compareInterval );
-    for (int i=0; i<v.size(); i++) {
+    vector<QString> v(contexts.size());
+    transform(contexts.begin(), contexts.end(), v.begin(), get_second);
+    sort(v.begin(), v.end(), compareInterval);
+    for (int i = 0; i < v.size(); i++)
+    {
         listModel->setData(listModel->index(i), v[i]);
     }
 }
@@ -557,42 +567,51 @@ void MainWindow::on_lineEdit_2_returnPressed()
     QSettings settings;
     bool liveUpdate = settings.value(SETTINGS_LIVE_SEARCH).toBool();
 
-    if(!liveUpdate || ui->cb_showaall->isChecked()){
+    if (!liveUpdate || ui->cb_showaall->isChecked())
+    {
         updateSearchResults();
-    } else {
+    }
+    else
+    {
         auto index = ui->tableView->model()->index(0, 1);
         saved_selection = ui->tableView->model()->data(index, Qt::UserRole).toString();
         ui->tableView->selectionModel()->select(index, QItemSelectionModel::Select);
         ui->tableView->setCurrentIndex(index);
         ui->tableView->setFocus(Qt::OtherFocusReason);
     }
-
 }
 
-void MainWindow::on_hotkey(){
+void MainWindow::on_hotkey()
+{
     auto dlg = new QuickAddDialog();
     dlg->setModal(true);
     dlg->show();
     dlg->exec();
-    if(dlg->accepted){
+    if (dlg->accepted)
+    {
         this->addTodo(dlg->text);
     }
 }
 
-void MainWindow::setHotkey(){
+void MainWindow::setHotkey()
+{
     QSettings settings;
-    if(settings.value(SETTINGS_HOTKEY_ENABLE).toBool()){
-        hotkey->registerHotkey(settings.value(SETTINGS_HOTKEY,DEFAULT_HOTKEY).toString());
-        connect(hotkey,&UGlobalHotkeys::activated,[=](size_t id){
+    if (settings.value(SETTINGS_HOTKEY_ENABLE).toBool())
+    {
+        hotkey->registerHotkey(settings.value(SETTINGS_HOTKEY, DEFAULT_HOTKEY).toString());
+        connect(hotkey, &UGlobalHotkeys::activated, [=](size_t id) {
             Q_UNUSED(id);
             on_hotkey();
         });
-    } else {
+    }
+    else
+    {
         hotkey->unregisterAllHotkeys();
     }
 }
 
-void MainWindow::on_actionAbout_triggered(){
+void MainWindow::on_actionAbout_triggered()
+{
     AboutBox d;
     d.setModal(true);
     d.show();
@@ -606,15 +625,16 @@ void MainWindow::on_actionSettings_triggered()
     d.setModal(true);
     d.show();
     d.exec();
-    if(d.refresh){
+    if (d.refresh)
+    {
         delete model;
         model = new TodoTableModel(this);
         proxyModel->setSourceModel(model);
         ui->tableView->setModel(proxyModel);
-        ui->tableView->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch);
+        ui->tableView->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
         ui->tableView->resizeColumnToContents(0);
         saveTableSelection();
-        model->refresh();// Not 100% sure why this is needed.. Should be done by re-setting the model above
+        model->refresh(); // Not 100% sure why this is needed.. Should be done by re-setting the model above
         resetTableSelection();
         setFileWatch();
         setTray();
@@ -622,21 +642,26 @@ void MainWindow::on_actionSettings_triggered()
     }
 }
 
-void MainWindow::setFontSize(){
+void MainWindow::setFontSize()
+{
     QSettings settings;
     int size = settings.value(SETTINGS_FONT_SIZE).toInt();
-    if(size >0){
+    if (size > 0)
+    {
         auto f = qApp->font();
         f.setPointSize(size);
         qApp->setFont(f);
     }
 }
 
-void MainWindow::setTray(){
+void MainWindow::setTray()
+{
     QSettings settings;
-    if(settings.value(SETTINGS_TRAY_ENABLED,DEFAULT_TRAY_ENABLED).toBool()){
+    if (settings.value(SETTINGS_TRAY_ENABLED, DEFAULT_TRAY_ENABLED).toBool())
+    {
         // We should be showing a tray icon. Are we?
-        if(trayicon==NULL){
+        if (trayicon == NULL)
+        {
             trayicon = new QSystemTrayIcon(this);
             traymenu = new QMenu(this);
             minimizeAction = new QAction(tr("Mi&nimize"), this);
@@ -647,7 +672,7 @@ void MainWindow::setTray(){
             connect(restoreAction, SIGNAL(triggered()), this, SLOT(showNormal()));
             quitAction = new QAction(tr("&Quit"), this);
             connect(quitAction, SIGNAL(triggered()), this, SLOT(cleanup()));
-            connect(QApplication::instance(),SIGNAL(aboutToQuit()),this,SLOT(cleanup()));
+            connect(QApplication::instance(), SIGNAL(aboutToQuit()), this, SLOT(cleanup()));
 
             traymenu->addAction(minimizeAction);
             traymenu->addAction(maximizeAction);
@@ -656,14 +681,16 @@ void MainWindow::setTray(){
             traymenu->addAction(quitAction);
             trayicon->setContextMenu(traymenu);
             connect(trayicon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
-                        this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
+                    this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
 
             trayicon->setIcon(QIcon(":/icons/newicon.png"));
         }
         trayicon->show();
     }
-    else{
-        if(trayicon!=NULL){
+    else
+    {
+        if (trayicon != NULL)
+        {
             trayicon->hide();
         }
     }
@@ -671,23 +698,24 @@ void MainWindow::setTray(){
 
 void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
 {
-    switch (reason) {
+    switch (reason)
+    {
     case QSystemTrayIcon::Trigger:
     case QSystemTrayIcon::DoubleClick:
-            // Make sure the window is open
-            this->show();
+        // Make sure the window is open
+        this->show();
         break;
     case QSystemTrayIcon::MiddleClick:
         // Do nothing
         break;
-    default:
-        ;
+    default:;
     }
 }
 
 void MainWindow::on_pushButton_clicked()
 {
-    if (ui->lineEdit->text() == "") {
+    if (ui->lineEdit->text() == "")
+    {
         MainWindow::on_lineEdit_2_returnPressed();
         return;
     }
@@ -697,36 +725,46 @@ void MainWindow::on_pushButton_clicked()
     QRegularExpressionMatch m_lineEdit_4 = priorityRegex.match(ui->lineEdit_4->text());
     QString txt;
     if (
-        m_lineEdit.hasMatch()
-        && m_lineEdit_4.hasMatch()
-    ) {
-        // Adding a new value into the model
-        txt = ui->lineEdit_4->text().replace(m_lineEdit_4.captured(1), "") + " " + ui->lineEdit->text();
-    } else {
+        m_lineEdit.hasMatch() && m_lineEdit_4.hasMatch())
+    {
+        // Strip the priority label from the lineEdit_4 default text, so the lineEdit priority label is used instead
+        txt = ui->lineEdit->text() + " " + ui->lineEdit_4->text().replace(m_lineEdit_4.captured(1), "");
+    }
+    else
+    {
         txt = ui->lineEdit_4->text() + " " + ui->lineEdit->text();
     }
-   addTodo(txt);
-   ui->lineEdit->clear();
+    addTodo(txt);
+    ui->lineEdit->clear();
 }
 
-void MainWindow::addTodo(QString &s){
+void MainWindow::addTodo(QString &s)
+{
 
-    if(ui->context_lock->isChecked()){
+    if (ui->context_lock->isChecked())
+    {
         // The line should have the context of the search field except any negative search
         QString fullPhrase = ui->lineEdit_3->text() + " " + ui->lineEdit_2->text();
         QStringList contexts = fullPhrase.simplified().split(QRegExp("\\s"));
-        for(QString context:contexts){
-         if(context.length() > 0 && context.at(0) != '@' && !context.contains("rec:") && !context.contains("t:") && !context.contains("due:") && context.at(0) != '(' && context.at(0) != '+') continue; // ignore this one
+        for (QString context : contexts)
+        {
+            if (context.length() > 0 && context.at(0) != '@' && !context.contains("rec:") && !context.contains("t:") && !context.contains("due:") && context.at(0) != '(' && context.at(0) != '+')
+                continue; // ignore this one
 
-         if(!s.contains(context,Qt::CaseInsensitive)){
-            if (context.at(0) == "(" && context.at(2) == ")") {
-               if (s.at(0) != "(") {
-                  s.prepend(context+" ");
-               }
-            } else {
-               s.append(" "+context);
+            if (!s.contains(context, Qt::CaseInsensitive))
+            {
+                if (context.at(0) == "(" && context.at(2) == ")")
+                {
+                    if (s.at(0) != "(")
+                    {
+                        s.prepend(context + " ");
+                    }
+                }
+                else
+                {
+                    s.append(" " + context);
+                }
             }
-         }
         }
     }
     model->add(s);
@@ -748,9 +786,10 @@ void MainWindow::deleteSelected()
     // Remove the selected item
     QModelIndexList indexes = ui->tableView->selectionModel()->selection().indexes();
     // Only support for deleting one item at a time
-    if(!indexes.empty()){
-        QModelIndex i=indexes.at(0);
-        QString t=model->data(proxyModel->mapToSource(i),Qt::UserRole).toString(); // User Role is Raw data
+    if (!indexes.empty())
+    {
+        QModelIndex i = indexes.at(0);
+        QString t = model->data(proxyModel->mapToSource(i), Qt::UserRole).toString(); // User Role is Raw data
         //QString t=proxyModel->data(i).toString();
         model->remove(t);
     }
@@ -774,120 +813,130 @@ void MainWindow::on_pushButton_4_clicked()
     updateTitle();
 }
 
-
-
-void MainWindow::saveTableSelection(){
+void MainWindow::saveTableSelection()
+{
     //auto index = ui->tableView->selectionModel()->selectedIndexes();
     auto index = ui->tableView->selectionModel()->currentIndex();
-//    if(index.count()>0){
-    if(index.isValid()){
+    //    if(index.count()>0){
+    if (index.isValid())
+    {
         // Vi har någonting valt.
         // qDebug()<<"Selected index: "<<index.at(0)<<endl;
         //saved_selection = model->data(index.at(0),Qt::UserRole).toString();
-        saved_selection = model->data(index,Qt::UserRole).toString();
+        saved_selection = model->data(index, Qt::UserRole).toString();
         //qDebug()<<"Selected text: "<<saved_selection<<endl;
-
     }
 }
 
 void MainWindow::showMessage(QString message)
 {
-   QMessageBox *qmb;
-   qmb = new QMessageBox(QMessageBox::NoIcon,
-                  "Hey",
-                  message,
-                  QMessageBox::Ok,
-                  this);
-   qmb->exec();
-   delete qmb;
+    QMessageBox *qmb;
+    qmb = new QMessageBox(QMessageBox::NoIcon,
+                          "Hey",
+                          message,
+                          QMessageBox::Ok,
+                          this);
+    qmb->exec();
+    delete qmb;
 }
 
 void MainWindow::showMessage(int message)
 {
-   showMessage(QString::number(message,'f',2));
+    showMessage(QString::number(message, 'f', 2));
 }
 
-void MainWindow::resetTableSelection(){
-   /* showMessage(saved_row); */
-   if (saved_row >= 0) {
-      auto index = ui->tableView->model()->index(saved_row, saved_column);
-      ui->tableView->setCurrentIndex(index);
-      ui->tableView->selectionModel()->select(index, QItemSelectionModel::Select);
-      ui->tableView->selectionModel()->setCurrentIndex(index,QItemSelectionModel::ClearAndSelect);
-      ui->tableView->setFocus(Qt::OtherFocusReason);
+void MainWindow::resetTableSelection()
+{
+    /* showMessage(saved_row); */
+    if (saved_row >= 0)
+    {
+        auto index = ui->tableView->model()->index(saved_row, saved_column);
+        ui->tableView->setCurrentIndex(index);
+        ui->tableView->selectionModel()->select(index, QItemSelectionModel::Select);
+        ui->tableView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::ClearAndSelect);
+        ui->tableView->setFocus(Qt::OtherFocusReason);
 
-      saved_row = -1;
-   } else if(saved_selection.size()>0) {
+        saved_row = -1;
+    }
+    else if (saved_selection.size() > 0)
+    {
         // Set the selection again
-        QModelIndexList foundIndexes = model->match(QModelIndex(),Qt::UserRole,saved_selection);
-        if(foundIndexes.count()>0){
+        QModelIndexList foundIndexes = model->match(QModelIndex(), Qt::UserRole, saved_selection);
+        if (foundIndexes.count() > 0)
+        {
             auto index = proxyModel->mapFromSource(foundIndexes.at(0));
             ui->tableView->selectionModel()->select(index, QItemSelectionModel::Select);
-            ui->tableView->selectionModel()->setCurrentIndex(index,QItemSelectionModel::ClearAndSelect);
+            ui->tableView->selectionModel()->setCurrentIndex(index, QItemSelectionModel::ClearAndSelect);
             ui->tableView->setCurrentIndex(index);
             ui->tableView->setFocus(Qt::OtherFocusReason);
-       }
+        }
 
-       saved_selection="";
+        saved_selection = "";
     }
 }
 
-void MainWindow::cleanup(){
+void MainWindow::cleanup()
+{
     QSettings settings;
 
-    settings.setValue( SETTINGS_GEOMETRY, saveGeometry() );
-    settings.setValue( SETTINGS_SAVESTATE, saveState() );
-    settings.setValue( SETTINGS_MAXIMIZED, isMaximized() );
-    if ( !isMaximized() ) {
-        settings.setValue( SETTINGS_POSITION, pos() );
-        settings.setValue( SETTINGS_SIZE, size() );
+    settings.setValue(SETTINGS_GEOMETRY, saveGeometry());
+    settings.setValue(SETTINGS_SAVESTATE, saveState());
+    settings.setValue(SETTINGS_MAXIMIZED, isMaximized());
+    if (!isMaximized())
+    {
+        settings.setValue(SETTINGS_POSITION, pos());
+        settings.setValue(SETTINGS_SIZE, size());
     }
-    settings.setValue(SETTINGS_SEARCH_STRING,ui->lineEdit_2->text());
-    settings.setValue(SETTINGS_CONTEXT_STRING,ui->lineEdit_3->text());
-    settings.setValue(SETTINGS_DEFAULT_TEXT_STRING,ui->lineEdit_4->text());
-    if(trayicon!=NULL){
+    settings.setValue(SETTINGS_SEARCH_STRING, ui->lineEdit_2->text());
+    settings.setValue(SETTINGS_CONTEXT_STRING, ui->lineEdit_3->text());
+    settings.setValue(SETTINGS_DEFAULT_TEXT_STRING, ui->lineEdit_4->text());
+    if (trayicon != NULL)
+    {
         delete trayicon;
         trayicon = NULL;
     }
     qApp->quit();
 }
 
-void MainWindow::closeEvent(QCloseEvent *ev){
+void MainWindow::closeEvent(QCloseEvent *ev)
+{
 
-    if (trayicon != NULL && trayicon->isVisible()) {
-            hide();
-            ev->ignore();
-    } else {
+    if (trayicon != NULL && trayicon->isVisible())
+    {
+        hide();
+        ev->ignore();
+    }
+    else
+    {
         cleanup();
         ev->accept();
     }
-
 }
 
 void MainWindow::on_btn_Alphabetical_toggled(bool checked)
 {
     QSettings settings;
-    settings.setValue(SETTINGS_SORT_ALPHA,checked);
+    settings.setValue(SETTINGS_SORT_ALPHA, checked);
     on_pushButton_4_clicked(); // Refresh
 }
 
 void MainWindow::on_context_lock_toggled(bool checked)
 {
     QSettings settings;
-    settings.setValue(SETTINGS_CONTEXT_LOCK,checked);
+    settings.setValue(SETTINGS_CONTEXT_LOCK, checked);
 }
 
 void MainWindow::on_cb_showaall_stateChanged(int arg1)
 {
     QSettings settings;
-    settings.setValue(SETTINGS_SHOW_ALL,arg1);
+    settings.setValue(SETTINGS_SHOW_ALL, arg1);
     on_pushButton_4_clicked();
 }
 
 void MainWindow::on_cb_threshold_inactive_stateChanged(int arg1)
 {
     QSettings settings;
-    settings.setValue(SETTINGS_THRESHOLD_INACTIVE,arg1);
+    settings.setValue(SETTINGS_THRESHOLD_INACTIVE, arg1);
     on_pushButton_4_clicked();
 }
 
@@ -896,11 +945,13 @@ void MainWindow::on_pb_closeVersionBar_clicked()
     ui->newVersionView->hide();
 }
 
-bool forced_check_version=false;
-void MainWindow::requestReceived(QNetworkReply* reply){
+bool forced_check_version = false;
+void MainWindow::requestReceived(QNetworkReply *reply)
+{
     QString replyText;
     QSettings settings;
-    if(reply->error()==QNetworkReply::NoError){
+    if (reply->error() == QNetworkReply::NoError)
+    {
 
         // Get the http status code
         int v = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
@@ -909,19 +960,23 @@ void MainWindow::requestReceived(QNetworkReply* reply){
             replyText = reply->readAll();
             double latest_version = replyText.toDouble();
             double this_version = QString(VER).toDouble();
-            qDebug()<<"Checked version - Latest: "<<latest_version<<" this version "<<this_version<<Qt::endl;
-            if(latest_version>this_version || forced_check_version){
-                if(latest_version >= this_version){
+            qDebug() << "Checked version - Latest: " << latest_version << " this version " << this_version << Qt::endl;
+            if (latest_version > this_version || forced_check_version)
+            {
+                if (latest_version >= this_version)
+                {
                     ui->lbl_latestVersion->hide();
-                } else {
+                }
+                else
+                {
                     ui->lbl_newVersion->hide();
                 }
-                ui->txtLatestVersion->setText("(v"+QString::number(latest_version,'f',2)+")");
+                ui->txtLatestVersion->setText("(v" + QString::number(latest_version, 'f', 2) + ")");
                 ui->newVersionView->show();
-                forced_check_version=false;
+                forced_check_version = false;
             }
             // Update the last checked since we were successful
-            settings.setValue(SETTINGS_LAST_UPDATE_CHECK,QDate::currentDate().toString("yyyy-MM-dd"));
+            settings.setValue(SETTINGS_LAST_UPDATE_CHECK, QDate::currentDate().toString("yyyy-MM-dd"));
         }
     }
     reply->deleteLater();
@@ -929,17 +984,18 @@ void MainWindow::requestReceived(QNetworkReply* reply){
 
 void MainWindow::undo()
 {
-    if(model->undo()){
+    if (model->undo())
+    {
         model->refresh();
     }
 }
 
 void MainWindow::redo()
 {
-    if(model->redo()){
+    if (model->redo())
+    {
         model->refresh();
     }
-
 }
 
 void MainWindow::clearSearch()
@@ -954,8 +1010,9 @@ void MainWindow::clearSearch()
 void MainWindow::launchUrl()
 {
     auto index = ui->tableView->selectionModel()->currentIndex();
-    QString URL=ui->tableView->model()->data(index,Qt::UserRole+1).toString();
-    if(!URL.isEmpty()){
+    QString URL = ui->tableView->model()->data(index, Qt::UserRole + 1).toString();
+    if (!URL.isEmpty())
+    {
         QDesktopServices::openUrl(URL);
     }
 }
@@ -973,12 +1030,10 @@ void MainWindow::completeTasks()
 
     forEachSelection([=](QModelIndex index, QString data) {
         auto checkbox = ui->tableView->model()->index(index.row(), 0);
-        model->toggleRow(proxyModel->mapToSource(checkbox), false);
-    }, [=]() {
+        model->toggleRow(proxyModel->mapToSource(checkbox), false); }, [=]() {
         model->endReset();
         ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
-        ui->tableView->setFocus(Qt::OtherFocusReason);
-    });
+        ui->tableView->setFocus(Qt::OtherFocusReason); });
 }
 
 void MainWindow::up()
@@ -1039,16 +1094,14 @@ void MainWindow::showAppendDialog()
     dialog->setTextValue("");
     dialog->setTextEchoMode(QLineEdit::Normal);
     const int ret = dialog->exec();
-    if (ret) {
+    if (ret)
+    {
         auto text = dialog->textValue();
 
         forEachSelection([=](QModelIndex index, QString data) {
             data.append(" ");
             data.append(text);
-            model->setData(proxyModel->mapToSource(index), data.simplified(), Qt::EditRole, false);
-        }, [=]() {
-            model->endReset();
-        });
+            model->setData(proxyModel->mapToSource(index), data.simplified(), Qt::EditRole, false); }, [=]() { model->endReset(); });
     }
 }
 
@@ -1062,15 +1115,13 @@ void MainWindow::showRemovalDialog()
     dialog->setTextValue("");
     dialog->setTextEchoMode(QLineEdit::Normal);
     const int ret = dialog->exec();
-    if (ret) {
+    if (ret)
+    {
         auto text = dialog->textValue();
 
         forEachSelection([=](QModelIndex index, QString data) {
             data.replace(text, "");
-            model->setData(proxyModel->mapToSource(index), data.simplified(), Qt::EditRole, false);
-        }, [=]() {
-            model->endReset();
-        });
+            model->setData(proxyModel->mapToSource(index), data.simplified(), Qt::EditRole, false); }, [=]() { model->endReset(); });
     }
 }
 
@@ -1114,10 +1165,7 @@ void MainWindow::setThresholdForSelected(QString threshold)
             data.append(threshold);
         }
 
-        model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
-    }, [=]() {
-        model->endReset();
-    });
+        model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false); }, [=]() { model->endReset(); });
 }
 
 void MainWindow::showDateDialog(QString typeName, QString prefix, QString dateRegexString)
@@ -1132,17 +1180,21 @@ void MainWindow::showDateDialog(QString typeName, QString prefix, QString dateRe
     QRegularExpression dateRegex(dateRegexString);
     QRegularExpressionMatch m = dateRegex.match(firstData);
 
-    if (m.hasMatch()) {
+    if (m.hasMatch())
+    {
         QString value = m.captured(1);
         dialog->setTextValue(value.replace(prefix, ""));
-    } else {
+    }
+    else
+    {
         QString value = prefix + todo->getToday();
         dialog->setTextValue(value.replace(prefix, ""));
     }
 
     dialog->setTextEchoMode(QLineEdit::Normal);
     const int ret = dialog->exec();
-    if (ret) {
+    if (ret)
+    {
         QString text = prefix + dialog->textValue();
 
         setThresholdForSelected(text);
@@ -1164,12 +1216,10 @@ void MainWindow::increasePriority()
             }
 
             model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
-        }
-    }, [=]() {
+        } }, [=]() {
         model->endReset();
         ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
-        ui->tableView->setFocus(Qt::OtherFocusReason);
-    });
+        ui->tableView->setFocus(Qt::OtherFocusReason); });
 }
 
 void MainWindow::decreasePriority()
@@ -1187,18 +1237,18 @@ void MainWindow::decreasePriority()
             }
 
             model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
-        }
-    }, [=]() {
+        } }, [=]() {
         model->endReset();
         ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
-        ui->tableView->setFocus(Qt::OtherFocusReason);
-    });
+        ui->tableView->setFocus(Qt::OtherFocusReason); });
 }
 
-void MainWindow::forEachSelection(std::function<void(QModelIndex, QString)> func, std::function<void()> callback) {
+void MainWindow::forEachSelection(std::function<void(QModelIndex, QString)> func, std::function<void()> callback)
+{
     QModelIndexList indexes = ui->tableView->selectionModel()->selection().indexes();
 
-    for(QModelIndex index:indexes) {
+    for (QModelIndex index : indexes)
+    {
         QString data = ui->tableView->model()->data(index, Qt::UserRole).toString();
         func(index, data);
     }
@@ -1207,18 +1257,17 @@ void MainWindow::forEachSelection(std::function<void(QModelIndex, QString)> func
 }
 
 // Check if there is an update available
-void MainWindow::requestPage(QString &s){
-    connect(networkaccessmanager,SIGNAL(finished(QNetworkReply*)),this,SLOT(requestReceived(QNetworkReply*)));
+void MainWindow::requestPage(QString &s)
+{
+    connect(networkaccessmanager, SIGNAL(finished(QNetworkReply *)), this, SLOT(requestReceived(QNetworkReply *)));
     networkaccessmanager->get(QNetworkRequest(QUrl(s)));
 }
 
-
 void MainWindow::on_actionCheck_for_updates_triggered()
 {
-    forced_check_version=true;
-    QString URL = VERSION_URL+(QString)"?v="+VER;
+    forced_check_version = true;
+    QString URL = VERSION_URL + (QString) "?v=" + VER;
     requestPage(URL);
-
 }
 
 void MainWindow::on_tableView_customContextMenuRequested(const QPoint &pos)
@@ -1226,11 +1275,11 @@ void MainWindow::on_tableView_customContextMenuRequested(const QPoint &pos)
     // This is used for triggering opening of a link.
     // Find out where we are
     auto index = ui->tableView->indexAt(pos);
-    QString URL=ui->tableView->model()->data(index,Qt::UserRole+1).toString();
-    if(!URL.isEmpty()){
+    QString URL = ui->tableView->model()->data(index, Qt::UserRole + 1).toString();
+    if (!URL.isEmpty())
+    {
         QDesktopServices::openUrl(URL);
     }
-
 }
 
 void MainWindow::on_actionQuit_triggered()
@@ -1262,24 +1311,31 @@ void MainWindow::on_lv_activetags_clicked(QModelIndex index)
     selectedContext = selectedContext.replace(m_selectedContext.captured(1), "");
 
     QStringList words = previousSearch.split(QRegularExpression("\\s+"));
-    QString regexpstring="(?=^.*$)"; // Seems a negative lookahead can't be first (!?), so this is a workaround
+    QString regexpstring = "(?=^.*$)"; // Seems a negative lookahead can't be first (!?), so this is a workaround
 
     bool found = false;
 
-    for (QString word:words){
-      if (word == selectedContext) {
-        found = true;
-        newSearch += " !" + word;
-      } else if (word == "!" + selectedContext) {
-        found = true;
-        continue;
-      } else {
-        newSearch += " " + word;
-      }
+    for (QString word : words)
+    {
+        if (word == selectedContext)
+        {
+            found = true;
+            newSearch += " !" + word;
+        }
+        else if (word == "!" + selectedContext)
+        {
+            found = true;
+            continue;
+        }
+        else
+        {
+            newSearch += " " + word;
+        }
     }
 
-    if (!found) {
-      newSearch += " " + selectedContext;
+    if (!found)
+    {
+        newSearch += " " + selectedContext;
     }
 
     ui->lineEdit_2->setText(newSearch.simplified() + " ");
