@@ -1305,6 +1305,8 @@ void MainWindow::on_actionRedo_triggered()
 
 void MainWindow::on_lv_activetags_clicked(QModelIndex index)
 {
+    Qt::KeyboardModifiers key = QApplication::queryKeyboardModifiers();
+
     QString previousSearch = ui->lineEdit_2->text().simplified();
     QString newSearch = "";
 
@@ -1339,7 +1341,14 @@ void MainWindow::on_lv_activetags_clicked(QModelIndex index)
 
     if (!found)
     {
-        newSearch += " " + selectedContext;
+        if (key == Qt::ControlModifier)
+        {
+            newSearch += " !" + selectedContext;
+        }
+        else
+        {
+            newSearch += " " + selectedContext;
+        }
     }
 
     ui->lineEdit_2->setText(newSearch.simplified() + " ");
