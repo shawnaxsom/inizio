@@ -588,6 +588,10 @@ void MainWindow::updateSearchResults()
 
     sort(v.begin(), v.end(), compareInterval);
 
+    v.insert(v.begin(), "-----------");
+    v.insert(v.begin(), "@home");
+    v.insert(v.begin(), "@work");
+    v.insert(v.begin(), "@today");
     v.insert(v.begin(), "(C)");
     v.insert(v.begin(), "(B)");
     v.insert(v.begin(), "(A)");
