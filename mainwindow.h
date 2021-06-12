@@ -12,16 +12,16 @@
 #include "todotxt.h"
 
 #ifdef Q_OS_OSX
-    #define VERSION_URL "https://nerdur.com/todour-latest_mac.php"
+#define VERSION_URL "https://nerdur.com/todour-latest_mac.php"
 #elif defined Q_OS_WIN
-    #define VERSION_URL "https://nerdur.com/todour-latest_windows.php"
+#define VERSION_URL "https://nerdur.com/todour-latest_windows.php"
 #else
-    #define VERSION_URL "https://nerdur.com/todour-latest.php"
+#define VERSION_URL "https://nerdur.com/todour-latest.php"
 #endif
 
-
-namespace Ui {
-class MainWindow;
+namespace Ui
+{
+    class MainWindow;
 }
 
 class MainWindow : public QMainWindow
@@ -35,8 +35,8 @@ public:
     ~MainWindow();
 
 public slots:
-    void fileModified(const QString& str);
-    void requestReceived(QNetworkReply* reply);
+    void fileModified(const QString &str);
+    void requestReceived(QNetworkReply *reply);
     void undo();
     void redo();
 
@@ -62,7 +62,7 @@ private slots:
 
     void on_pushButton_4_clicked();
 
-    void dataInModelChanged(QModelIndex i1,QModelIndex i2);
+    void dataInModelChanged(QModelIndex i1, QModelIndex i2);
 
     void completeTasks();
 
@@ -101,6 +101,7 @@ private slots:
     void on_btn_Alphabetical_toggled(bool checked);
 
     void on_lineEdit_2_returnPressed();
+    void focusTodoList();
 
     void on_lineEdit_3_returnPressed();
 
@@ -113,7 +114,6 @@ private slots:
 
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
     void cleanup(); // Need to have a quit slot of my own to save settings and so on.
-
 
     void on_pb_closeVersionBar_clicked();
 
@@ -145,7 +145,7 @@ private:
     UGlobalHotkeys *hotkey;
     void setHotkey();
     QSystemTrayIcon *trayicon = NULL;
-    QMenu *traymenu=NULL;
+    QMenu *traymenu = NULL;
     QAction *minimizeAction;
     QAction *maximizeAction;
     QAction *restoreAction;

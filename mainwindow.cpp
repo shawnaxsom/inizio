@@ -154,6 +154,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     clearshortcut2->setContext(Qt::WidgetShortcut);
     QObject::connect(clearshortcut2, SIGNAL(activated()), this, SLOT(clearSearch()));
 
+    auto returntolistshortcut = new QShortcut(QKeySequence(tr("Esc")), ui->lineEdit);
+    returntolistshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(returntolistshortcut, SIGNAL(activated()), this, SLOT(focusTodoList()));
+
     auto launchshortcut = new QShortcut(QKeySequence(tr("o")), ui->tableView);
     launchshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(launchshortcut, SIGNAL(activated()), this, SLOT(launchUrl()));
@@ -519,8 +523,7 @@ bool compareInterval(QString i1, QString i2)
 /* }; */
 
 static const QString stopwordsArr[] = {"and", "for", "to", "on", "with", "from", "in", "up", "about", "the", "of", "out", "new", "be", "do", "we", "is", "at", "that", "as", "by", "how", "other", "set", "an", "over", "if", "can", "get"};
-vector<QString> stopwords (stopwordsArr, stopwordsArr + sizeof(stopwordsArr) / sizeof(stopwordsArr[0]) );
-
+vector<QString> stopwords(stopwordsArr, stopwordsArr + sizeof(stopwordsArr) / sizeof(stopwordsArr[0]));
 
 void MainWindow::updateSearchResults()
 {
@@ -580,11 +583,13 @@ void MainWindow::updateSearchResults()
 
     vector<QString> v(contexts.size());
 
-    for (std::pair<const QString, int>& x: contexts) {
-        if (std::find(stopwords.begin(), stopwords.end(), x.first) == stopwords.end()) {
+    for (std::pair<const QString, int> &x : contexts)
+    {
+        if (std::find(stopwords.begin(), stopwords.end(), x.first) == stopwords.end())
+        {
             v.push_back(x.first + " (" + QString::number(x.second, 'f', 0) + ")");
         }
-    }  
+    }
 
     sort(v.begin(), v.end(), compareInterval);
 
@@ -600,6 +605,15 @@ void MainWindow::updateSearchResults()
     {
         listModel->setData(listModel->index(i), v[i]);
     }
+}
+
+void MainWindow::focusTodoList()
+{
+    auto index = ui->tableView->model()->index(0, 1);
+    saved_selection = ui->tableView->model()->data(index, Qt::UserRole).toString();
+    ui->tableView->selectionModel()->select(index, QItemSelectionModel::Select);
+    ui->tableView->setCurrentIndex(index);
+    ui->tableView->setFocus(Qt::OtherFocusReason);
 }
 
 void MainWindow::on_lineEdit_3_returnPressed()
@@ -618,11 +632,7 @@ void MainWindow::on_lineEdit_2_returnPressed()
     }
     else
     {
-        auto index = ui->tableView->model()->index(0, 1);
-        saved_selection = ui->tableView->model()->data(index, Qt::UserRole).toString();
-        ui->tableView->selectionModel()->select(index, QItemSelectionModel::Select);
-        ui->tableView->setCurrentIndex(index);
-        ui->tableView->setFocus(Qt::OtherFocusReason);
+        focusTodoList();
     }
 }
 
