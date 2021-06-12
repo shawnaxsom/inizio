@@ -1,6 +1,7 @@
 #include <map>
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -416,9 +417,9 @@ void MainWindow::parse_todotxt()
     int row = listModel->rowCount();
 
     listModel->insertRows(row, 1000);
-    // listModel->setData(listModel->index(0), "(A)");
-    // listModel->setData(listModel->index(1), "(B)");
-    // listModel->setData(listModel->index(2), "(C)");
+    listModel->setData(listModel->index(0), "(A)");
+    listModel->setData(listModel->index(1), "(B)");
+    listModel->setData(listModel->index(2), "(C)");
     // listModel->setData(listModel->index(3), "@now");
     // listModel->setData(listModel->index(4), "@today");
     // listModel->setData(listModel->index(5), "@tonight");
@@ -461,11 +462,26 @@ QString get_second(pair<QString, int> i) { return i.first + " (" + QString::numb
 
 bool compareInterval(QString i1, QString i2)
 {
+    QRegularExpression projectRegex("^[+][a-zA-Z]");
+    QRegularExpressionMatch m_i1project = projectRegex.match(i1);
+    QRegularExpressionMatch m_i2project = projectRegex.match(i2);
+
     QRegularExpression contextRegex("^[@]");
     QRegularExpressionMatch m_i1context = contextRegex.match(i1);
     QRegularExpressionMatch m_i2context = contextRegex.match(i2);
 
-    // Allow for regular words, but sort contexts to the top
+    // Sort projects to top of list
+    if (m_i1project.hasMatch() && !m_i2project.hasMatch())
+    {
+        return true;
+    }
+    else if (!m_i1project.hasMatch() && m_i2project.hasMatch())
+    {
+        return false;
+    }
+
+    // Sort contexts after projects
+    // Then sort by standard words
     if (m_i1context.hasMatch() && !m_i2context.hasMatch())
     {
         return true;
@@ -490,6 +506,21 @@ bool compareInterval(QString i1, QString i2)
 
     return (x1 > x2);
 }
+
+/* template <class InputIt, class OutputIt, class Pred, class Fct> */
+/* auto transform_if =  [](auto first, auto last, auto dest, auto pred, auto transform) */
+/* { */
+/*    while (first != last) { */
+/*       if (pred(*first)) */
+/*          *dest++ = transform(*first); */
+
+/*       ++first; */
+/*    } */
+/* }; */
+
+static const QString stopwordsArr[] = {"and", "for", "to", "on", "with", "from", "in", "up", "about", "the", "of", "out", "new", "be", "do", "we", "is", "at", "that", "as", "by", "how", "other", "set", "an", "over", "if", "can", "get"};
+vector<QString> stopwords (stopwordsArr, stopwordsArr + sizeof(stopwordsArr) / sizeof(stopwordsArr[0]) );
+
 
 void MainWindow::updateSearchResults()
 {
@@ -529,7 +560,7 @@ void MainWindow::updateSearchResults()
         auto index = ui->tableView->model()->index(i, 1);
         QString rowText = ui->tableView->model()->data(index, Qt::UserRole).toString();
         // QRegularExpression contextsRegex("([@][a-zA-Z0-9]+)");
-        QRegularExpression contextsRegex("([@a-zA-Z][@a-zA-Z0-9-]+)");
+        QRegularExpression contextsRegex("[ ([]([+@a-zA-Z][@a-zA-Z0-9-:/.]+)");
 
         QRegularExpressionMatchIterator j = contextsRegex.globalMatch(rowText);
         while (j.hasNext())
@@ -537,8 +568,7 @@ void MainWindow::updateSearchResults()
             QRegularExpressionMatch match = j.next();
             if (match.hasMatch())
             {
-                match.captured(0);
-                QString context = match.captured(0);
+                QString context = match.captured(1);
                 if (
                     ui->lineEdit_2->text().indexOf(context) == -1 && ui->lineEdit_3->text().indexOf(context) == -1)
                 {
@@ -549,8 +579,19 @@ void MainWindow::updateSearchResults()
     }
 
     vector<QString> v(contexts.size());
-    transform(contexts.begin(), contexts.end(), v.begin(), get_second);
+
+    for (std::pair<const QString, int>& x: contexts) {
+        if (std::find(stopwords.begin(), stopwords.end(), x.first) == stopwords.end()) {
+            v.push_back(x.first + " (" + QString::number(x.second, 'f', 0) + ")");
+        }
+    }  
+
     sort(v.begin(), v.end(), compareInterval);
+
+    v.insert(v.begin(), "(C)");
+    v.insert(v.begin(), "(B)");
+    v.insert(v.begin(), "(A)");
+
     for (int i = 0; i < v.size(); i++)
     {
         listModel->setData(listModel->index(i), v[i]);
