@@ -425,9 +425,9 @@ void MainWindow::parse_todotxt()
     int row = listModel->rowCount();
 
     listModel->insertRows(row, 1000);
-    listModel->setData(listModel->index(0), "(A)");
-    listModel->setData(listModel->index(1), "(B)");
-    listModel->setData(listModel->index(2), "(C)");
+    // listModel->setData(listModel->index(0), "(A)");
+    // listModel->setData(listModel->index(1), "(B)");
+    // listModel->setData(listModel->index(2), "(C)");
     // listModel->setData(listModel->index(3), "@now");
     // listModel->setData(listModel->index(4), "@today");
     // listModel->setData(listModel->index(5), "@tonight");
@@ -603,6 +603,9 @@ void MainWindow::updateSearchResults()
     v.insert(v.begin(), "@home");
     v.insert(v.begin(), "@work");
     v.insert(v.begin(), "@today");
+    v.insert(v.begin(), "(F)");
+    v.insert(v.begin(), "(E)");
+    v.insert(v.begin(), "(D)");
     v.insert(v.begin(), "(C)");
     v.insert(v.begin(), "(B)");
     v.insert(v.begin(), "(A)");
