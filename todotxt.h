@@ -48,6 +48,7 @@ public:
     void refresh();
     bool isInactive(QString& text);
     int  dueIn(QString& text);
+    static QDate dateFrom(QString &);
     QString getToday();
     QString getTodoFilePath();
     QString getDoneFilePath();

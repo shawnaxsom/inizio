@@ -143,6 +143,38 @@ bool todotxt::isInactive(QString &text){
 
 /* Comparator function.. We need to remove all the junk in the beginning of the line */
 bool todotxt::lessThan(QString &s1,QString &s2){
+    QString w1 = s1.split(" ").at(0);
+    QString w2 = s2.split(" ").at(0);
+
+    if (w1.toLower() < prettyPrint(w2).toLower())
+    {
+        return true;
+    }
+    else if (prettyPrint(w1).toLower() > prettyPrint(w2).toLower())
+    {
+        return false;
+    }
+
+    auto s1date = dateFrom(s1);
+    auto s2date = dateFrom(s2);
+
+    if (!s1date.isNull() && s2date.isNull())
+    {
+        return true;
+    }
+    else if (s1date.isNull() && !s2date.isNull())
+    {
+        return false;
+    }
+    else if (!s1date.isNull() && !s2date.isNull() && s1date < s2date)
+    {
+        return true;
+    }
+    else if (!s1date.isNull() && !s2date.isNull() && s1date > s2date)
+    {
+        return false;
+    }
+
     return prettyPrint(s1).toLower() < prettyPrint(s2).toLower();
 }
 
@@ -188,7 +220,7 @@ bool todotxt::threshold_hide(QString &t){
 void todotxt::getAll(QString& filter,vector<QString> &output){
         // Vectors are probably not the best here...
     Q_UNUSED(filter);
-        set<QString> prio;
+        vector<QString> prio;
         vector<QString> open;
         vector<QString> done;
         vector<QString> inactive;
@@ -236,7 +268,7 @@ void todotxt::getAll(QString& filter,vector<QString> &output){
                     && !(inact&&separateinactives)
                     && (*iter).at(0) == '(' && (*iter).at(2) == ')')
             {
-                prio.insert((*iter));
+                prio.push_back((*iter));
             }
             else if ( (*iter).at(0) == 'x')
             {
@@ -255,12 +287,13 @@ void todotxt::getAll(QString& filter,vector<QString> &output){
         // Sort the open and done sections alphabetically if needed
 
         if(settings.value(SETTINGS_SORT_ALPHA).toBool()){
+            std::sort(prio.begin(),prio.end(),lessThan);
             std::sort(open.begin(),open.end(),lessThan);
             std::sort(inactive.begin(),inactive.end(),lessThan);
             std::sort(done.begin(),done.end(),lessThan);
         }
 
-        for(set<QString>::iterator iter=prio.begin();iter!=prio.end();iter++)
+        for(vector<QString>::iterator iter=prio.begin();iter!=prio.end();iter++)
             output.push_back((*iter));
         for(vector<QString>::iterator iter=open.begin();iter!=open.end();iter++)
             output.push_back((*iter));
@@ -818,6 +851,16 @@ int todotxt::dueIn(QString &text){
         }
     }
     return ret;
+}
+
+QDate todotxt::dateFrom(QString &s){
+    auto sd = regex_due_date.match(s);
+    if(sd.hasMatch()){
+       auto sDate = QDate::fromString(sd.captured(1),"yyyy-MM-dd");
+       return sDate;
+    }
+
+    return *new QDate();
 }
 
 //QRegularExpression regex_url("[a-zA-Z0-9_]+://[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=\\(\\)]*)");
