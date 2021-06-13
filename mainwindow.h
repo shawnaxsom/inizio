@@ -81,6 +81,7 @@ private slots:
     void right();
     void pageUp();
     void pageDown();
+    void toggleToday();
 
     void increasePriority();
     void decreasePriority();

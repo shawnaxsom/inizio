@@ -225,6 +225,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     pagedownshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(pagedownshortcut, SIGNAL(activated()), this, SLOT(pageDown()));
 
+    auto todayshortcut = new QShortcut(QKeySequence(tr("Ctrl+t")), ui->tableView);
+    todayshortcut->setContext(Qt::WidgetShortcut);
+    QObject::connect(todayshortcut, SIGNAL(activated()), this, SLOT(toggleToday()));
+
     auto deleteshortcut = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Backspace), ui->tableView);
     deleteshortcut->setContext(Qt::WidgetShortcut);
     QObject::connect(deleteshortcut, SIGNAL(activated()), this, SLOT(deleteSelected()));
@@ -1143,6 +1147,32 @@ void MainWindow::pageDown()
 {
     QKeyEvent *key_press = new QKeyEvent(QKeyEvent::KeyPress, Qt::Key_PageDown, Qt::NoModifier, "PageDown");
     QApplication::sendEvent(ui->tableView, key_press);
+}
+
+void MainWindow::toggleToday()
+{
+    saveCurrentIndex();
+
+    auto text = "@today";
+
+    QRegularExpression todayRegex("([ ]?@today[ ]?)");
+    forEachSelection([=](QModelIndex index, QString data) {
+        QRegularExpressionMatch m = todayRegex.match(data);
+        if (m.hasMatch())
+        {
+            QString text = m.captured(1);
+            data.replace(text, "");
+        }
+        else
+        {
+            data.append(" ");
+            data.append(text);
+        }
+        model->setData(proxyModel->mapToSource(index), data.simplified(), Qt::EditRole, false); }, [=]() {
+            model->endReset();
+            ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
+            ui->tableView->setFocus(Qt::OtherFocusReason);
+        });
 }
 
 void MainWindow::showAppendDialog()
