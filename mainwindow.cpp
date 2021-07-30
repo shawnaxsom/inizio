@@ -562,12 +562,14 @@ void MainWindow::updateSearchResults()
 
     std::map<QString, int> contexts = {};
 
+    // for (int i = 0; i < ui->tableView->model()->rowCount() && i < 100; ++i)
     for (int i = 0; i < ui->tableView->model()->rowCount(); ++i)
     {
         auto index = ui->tableView->model()->index(i, 1);
         QString rowText = ui->tableView->model()->data(index, Qt::UserRole).toString();
         // QRegularExpression contextsRegex("([@][a-zA-Z0-9]+)");
-        QRegularExpression contextsRegex("[ ([]([+@a-zA-Z][@a-zA-Z0-9-:/.]+)");
+        // QRegularExpression contextsRegex("[ ([]([+@a-zA-Z][@a-zA-Z0-9-:/.]+)");
+        QRegularExpression contextsRegex("[ ([]([+@][@a-zA-Z0-9-:/.]+)");
 
         QRegularExpressionMatchIterator j = contextsRegex.globalMatch(rowText);
         while (j.hasNext())
@@ -663,10 +665,11 @@ void MainWindow::setHotkey()
     if (settings.value(SETTINGS_HOTKEY_ENABLE).toBool())
     {
         hotkey->registerHotkey(settings.value(SETTINGS_HOTKEY, DEFAULT_HOTKEY).toString());
-        connect(hotkey, &UGlobalHotkeys::activated, [=](size_t id) {
-            Q_UNUSED(id);
-            on_hotkey();
-        });
+        connect(hotkey, &UGlobalHotkeys::activated, [=](size_t id)
+                {
+                    Q_UNUSED(id);
+                    on_hotkey();
+                });
     }
     else
     {
@@ -850,12 +853,14 @@ void MainWindow::deleteSelected()
     saveCurrentIndex();
 
     forEachSelection(
-        [=](QModelIndex index, QString data) {
+        [=](QModelIndex index, QString data)
+        {
             QString t = model->data(proxyModel->mapToSource(index), Qt::UserRole).toString(); // User Role is Raw data
             //QString t=proxyModel->data(i).toString();
             model->remove(t, false);
         },
-        [=]() {
+        [=]()
+        {
             model->endReset();
             ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
             ui->tableView->setFocus(Qt::OtherFocusReason);
@@ -1096,12 +1101,17 @@ void MainWindow::completeTasks()
 {
     saveCurrentIndex();
 
-    forEachSelection([=](QModelIndex index, QString data) {
-        auto checkbox = ui->tableView->model()->index(index.row(), 0);
-        model->toggleRow(proxyModel->mapToSource(checkbox), false); }, [=]() {
-        model->endReset();
-        ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
-        ui->tableView->setFocus(Qt::OtherFocusReason); });
+    forEachSelection([=](QModelIndex index, QString data)
+                     {
+                         auto checkbox = ui->tableView->model()->index(index.row(), 0);
+                         model->toggleRow(proxyModel->mapToSource(checkbox), false);
+                     },
+                     [=]()
+                     {
+                         model->endReset();
+                         ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
+                         ui->tableView->setFocus(Qt::OtherFocusReason);
+                     });
 }
 
 void MainWindow::up()
@@ -1159,23 +1169,27 @@ void MainWindow::toggleToday()
     auto text = "@today";
 
     QRegularExpression todayRegex("([ ]?@today[ ]?)");
-    forEachSelection([=](QModelIndex index, QString data) {
-        QRegularExpressionMatch m = todayRegex.match(data);
-        if (m.hasMatch())
-        {
-            QString text = m.captured(1);
-            data.replace(text, "");
-        }
-        else
-        {
-            data.append(" ");
-            data.append(text);
-        }
-        model->setData(proxyModel->mapToSource(index), data.simplified(), Qt::EditRole, false); }, [=]() {
-            model->endReset();
-            ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
-            ui->tableView->setFocus(Qt::OtherFocusReason);
-        });
+    forEachSelection([=](QModelIndex index, QString data)
+                     {
+                         QRegularExpressionMatch m = todayRegex.match(data);
+                         if (m.hasMatch())
+                         {
+                             QString text = m.captured(1);
+                             data.replace(text, "");
+                         }
+                         else
+                         {
+                             data.append(" ");
+                             data.append(text);
+                         }
+                         model->setData(proxyModel->mapToSource(index), data.simplified(), Qt::EditRole, false);
+                     },
+                     [=]()
+                     {
+                         model->endReset();
+                         ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
+                         ui->tableView->setFocus(Qt::OtherFocusReason);
+                     });
 }
 
 void MainWindow::showAppendDialog()
@@ -1192,10 +1206,14 @@ void MainWindow::showAppendDialog()
     {
         auto text = dialog->textValue();
 
-        forEachSelection([=](QModelIndex index, QString data) {
-            data.append(" ");
-            data.append(text);
-            model->setData(proxyModel->mapToSource(index), data.simplified(), Qt::EditRole, false); }, [=]() { model->endReset(); });
+        forEachSelection([=](QModelIndex index, QString data)
+                         {
+                             data.append(" ");
+                             data.append(text);
+                             model->setData(proxyModel->mapToSource(index), data.simplified(), Qt::EditRole, false);
+                         },
+                         [=]()
+                         { model->endReset(); });
     }
 }
 
@@ -1213,9 +1231,13 @@ void MainWindow::showRemovalDialog()
     {
         auto text = dialog->textValue();
 
-        forEachSelection([=](QModelIndex index, QString data) {
-            data.replace(text, "");
-            model->setData(proxyModel->mapToSource(index), data.simplified(), Qt::EditRole, false); }, [=]() { model->endReset(); });
+        forEachSelection([=](QModelIndex index, QString data)
+                         {
+                             data.replace(text, "");
+                             model->setData(proxyModel->mapToSource(index), data.simplified(), Qt::EditRole, false);
+                         },
+                         [=]()
+                         { model->endReset(); });
     }
 }
 
@@ -1246,20 +1268,30 @@ void MainWindow::showDueDialog()
 void MainWindow::setThresholdForSelected(QString threshold)
 {
     QRegularExpression dateRegex("^(t:[\\d-]+)");
-    forEachSelection([=](QModelIndex index, QString data) {
-        QRegularExpressionMatch m = dateRegex.match(data);
-        if(m.hasMatch()) {
-            if (threshold == "t:") {
-                data = data.replace(" " + m.captured(1), "t:" + threshold);
-            } else {
-                data = data.replace(m.captured(1), "t:" + threshold);
-            }
-        } else {
-            data.append(" t:");
-            data.append(threshold);
-        }
+    forEachSelection([=](QModelIndex index, QString data)
+                     {
+                         QRegularExpressionMatch m = dateRegex.match(data);
+                         if (m.hasMatch())
+                         {
+                             if (threshold == "t:")
+                             {
+                                 data = data.replace(" " + m.captured(1), "t:" + threshold);
+                             }
+                             else
+                             {
+                                 data = data.replace(m.captured(1), "t:" + threshold);
+                             }
+                         }
+                         else
+                         {
+                             data.append(" t:");
+                             data.append(threshold);
+                         }
 
-        model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false); }, [=]() { model->endReset(); });
+                         model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
+                     },
+                     [=]()
+                     { model->endReset(); });
 }
 
 void MainWindow::showDateDialog(QString typeName, QString prefix, QString dateRegexString)
@@ -1301,19 +1333,26 @@ void MainWindow::increasePriority()
 
     QRegularExpression priorityRegex("^\\(([A-Z])\\)");
 
-    forEachSelection([=](QModelIndex index, QString data) {
-        QRegularExpressionMatch m = priorityRegex.match(data);
-        if (m.hasMatch()) {
-            auto newValue = QString(m.captured(1)[0]).at(0).toLatin1() - 1;
-            if (newValue >= 65) {
-                data = data.replace("(" + m.captured(1) + ")", "(" + (QString(newValue)) + ")");
-            }
+    forEachSelection([=](QModelIndex index, QString data)
+                     {
+                         QRegularExpressionMatch m = priorityRegex.match(data);
+                         if (m.hasMatch())
+                         {
+                             auto newValue = QString(m.captured(1)[0]).at(0).toLatin1() - 1;
+                             if (newValue >= 65)
+                             {
+                                 data = data.replace("(" + m.captured(1) + ")", "(" + (QString(newValue)) + ")");
+                             }
 
-            model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
-        } }, [=]() {
-        model->endReset();
-        ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
-        ui->tableView->setFocus(Qt::OtherFocusReason); });
+                             model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
+                         }
+                     },
+                     [=]()
+                     {
+                         model->endReset();
+                         ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
+                         ui->tableView->setFocus(Qt::OtherFocusReason);
+                     });
 }
 
 void MainWindow::decreasePriority()
@@ -1322,19 +1361,26 @@ void MainWindow::decreasePriority()
 
     QRegularExpression priorityRegex("^\\(([A-Z])\\)");
 
-    forEachSelection([=](QModelIndex index, QString data) {
-        QRegularExpressionMatch m = priorityRegex.match(data);
-        if (m.hasMatch()) {
-            auto newValue = QString(m.captured(1)[0]).at(0).toLatin1() + 1;
-            if (newValue <= 90) {
-                data = data.replace("(" + m.captured(1) + ")", "(" + (QString(newValue)) + ")");
-            }
+    forEachSelection([=](QModelIndex index, QString data)
+                     {
+                         QRegularExpressionMatch m = priorityRegex.match(data);
+                         if (m.hasMatch())
+                         {
+                             auto newValue = QString(m.captured(1)[0]).at(0).toLatin1() + 1;
+                             if (newValue <= 90)
+                             {
+                                 data = data.replace("(" + m.captured(1) + ")", "(" + (QString(newValue)) + ")");
+                             }
 
-            model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
-        } }, [=]() {
-        model->endReset();
-        ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
-        ui->tableView->setFocus(Qt::OtherFocusReason); });
+                             model->setData(proxyModel->mapToSource(index), data, Qt::EditRole, false);
+                         }
+                     },
+                     [=]()
+                     {
+                         model->endReset();
+                         ui->tableView->setCurrentIndex(ui->tableView->model()->index(saved_row, saved_column));
+                         ui->tableView->setFocus(Qt::OtherFocusReason);
+                     });
 }
 
 void MainWindow::forEachSelection(std::function<void(QModelIndex, QString)> func, std::function<void()> callback)
