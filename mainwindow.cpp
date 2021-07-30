@@ -604,6 +604,7 @@ void MainWindow::updateSearchResults()
     v.insert(v.begin(), "due:");
     v.insert(v.begin(), "@home");
     v.insert(v.begin(), "@work");
+    v.insert(v.begin(), "@tonight");
     v.insert(v.begin(), "@today");
     v.insert(v.begin(), "(F)");
     v.insert(v.begin(), "(E)");
