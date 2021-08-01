@@ -1169,7 +1169,7 @@ void MainWindow::toggleToday()
 
     auto text = "@today";
 
-    QRegularExpression todayRegex("([ ]?@today[ ]?)");
+    QRegularExpression todayRegex("([ ]?@today)");
     forEachSelection([=](QModelIndex index, QString data)
                      {
                          QRegularExpressionMatch m = todayRegex.match(data);
